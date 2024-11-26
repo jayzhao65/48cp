@@ -10,6 +10,7 @@ import questionnaireRoutes from './routes/questionnaire';
 import uploadRoutes from './routes/upload';
 import authRoutes from './routes/auth';
 import coupleRoutes from './routes/couple';
+import dashboardRoutes from './routes/dashboard';
 import * as path from 'path';
 import fs from 'fs';
 
@@ -42,7 +43,8 @@ app.use('/api', [
     questionnaireRoutes,
     uploadRoutes,
     authRoutes,
-    coupleRoutes
+    coupleRoutes,
+    dashboardRoutes
   ]);
 // 设置服务器端口
 // process.env.PORT 读取环境变量中的 PORT 值，如果没有设置则使用 3001
