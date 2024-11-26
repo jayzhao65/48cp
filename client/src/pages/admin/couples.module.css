@@ -1,0 +1,176 @@
+.container {
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.userInfo {
+  font-size: 12px;
+  color: #666;
+}
+
+.taskPending {
+  color: #faad14;
+}
+
+.taskGenerated {
+  color: #52c41a;
+}
+
+.taskContent {
+  margin-top: 16px;
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 4px;
+}
+
+.taskMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #666;
+  font-size: 12px;
+}
+
+.taskJson {
+  background: #fff;
+  padding: 16px;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 400px;
+}
+
+.userCards {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.userCard {
+  flex: 1;
+  padding: 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.userCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.userCard h3 {
+  margin-bottom: 12px;
+  color: #1890ff;
+}
+
+.userCard p {
+  margin: 4px 0;
+  color: #666;
+}
+
+.matchInfo {
+  text-align: center;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  margin: 16px 0;
+}
+
+.taskDetails {
+  background: #fff;
+  padding: 16px;
+  border-radius: 4px;
+  margin-top: 16px;
+}
+
+.taskDetails h3 {
+  color: #1890ff;
+  margin-bottom: 12px;
+}
+
+.taskDetails h4 {
+  margin: 16px 0 8px;
+  color: #333;
+}
+
+.taskDetails ul {
+  list-style: decimal;
+  padding-left: 20px;
+  margin-bottom: 16px;
+}
+
+.taskDetails li {
+  margin: 8px 0;
+  color: #666;
+}
+
+.userDetail {
+  padding: 16px;
+}
+
+.section {
+  margin-top: 24px;
+}
+
+.section h3 {
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.reportContent {
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.reportSection {
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 4px;
+}
+
+.reportMeta {
+  margin-bottom: 12px;
+  display: flex;
+  gap: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+.reportContent {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.drawerContent {
+  padding: 24px 0;
+}
+
+.userDetail {
+  padding: 24px;
+} 

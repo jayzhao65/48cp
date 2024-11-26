@@ -20,19 +20,27 @@ function AdminLayout() {
     {
       key: 'users',
       icon: <UserOutlined />,
-      label: '用户管理',
+      label: <span style={{ writingMode: 'horizontal-tb' }}> 用户管理 </span>,
     },
     {
       key: 'couples',
       icon: <HeartOutlined />,
-      label: 'CP管理',
+      label: <span style={{ writingMode: 'horizontal-tb' }}> CP管理 </span>,
     },
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ 
+      minHeight: '100vh',
+      writingMode: 'horizontal-tb',
+      textOrientation: 'mixed'
+    }}>
       <Header style={{ padding: 0, background: '#fff' }}>
-        <div style={{ marginLeft: 24 }}>48CP 管理系统</div>
+        <div style={{ 
+          marginLeft: 24,
+          writingMode: 'horizontal-tb',
+          textOrientation: 'mixed'
+        }}>48CP 管理系统</div>
       </Header>
       <Layout>
         <Sider width={200} style={{ background: '#fff' }}>

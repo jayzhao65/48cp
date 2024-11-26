@@ -1,0 +1,196 @@
+.loginContainer {
+  min-height: 100vh;
+  display: flex;
+  background: #fff;
+}
+
+.leftSection {
+  flex: 1;
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.illustration {
+  position: relative;
+  width: 400px;
+  height: 400px;
+}
+
+/* 创建类似图片中的几何图形 */
+.shape1 {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  background: #7C3AED;
+  border-radius: 20px;
+  left: 50px;
+  top: 100px;
+}
+
+.shape2 {
+  position: absolute;
+  width: 120px;
+  height: 180px;
+  background: #111111;
+  right: 80px;
+  top: 80px;
+}
+
+.shape3 {
+  position: absolute;
+  width: 200px;
+  height: 100px;
+  background: #FFA500;
+  border-radius: 100px 100px 0 0;
+  bottom: 60px;
+  left: 40px;
+}
+
+.shape4 {
+  position: absolute;
+  width: 100px;
+  height: 160px;
+  background: #FFD700;
+  right: 60px;
+  bottom: 80px;
+}
+
+.rightSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.loginContent {
+  width: 100%;
+  max-width: 420px;
+}
+
+.loginHeader {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.logo {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 16px;
+}
+
+.form {
+  width: 100%;
+}
+
+.form :global(.ant-form-item) {
+  margin-bottom: 24px;
+}
+
+.form :global(.ant-form-item-label) {
+  padding-bottom: 8px;
+}
+
+.form :global(.ant-form-item-label > label) {
+  color: #111;
+  font-weight: 500;
+}
+
+.form :global(.ant-input),
+.form :global(.ant-input-password) {
+  height: 45px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  padding: 0 16px;
+  font-size: 15px;
+}
+
+.form :global(.ant-input:focus),
+.form :global(.ant-input-password:focus) {
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+.formOptions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.forgotPassword {
+  color: #7C3AED;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.forgotPassword:hover {
+  text-decoration: underline;
+}
+
+.submitButton {
+  width: 100%;
+  height: 45px;
+  background: #111;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submitButton:hover {
+  background: #000;
+  transform: translateY(-1px);
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .leftSection {
+    display: none;
+  }
+  
+  .rightSection {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .loginContent {
+    padding: 20px;
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+  
+  .formOptions {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+} 

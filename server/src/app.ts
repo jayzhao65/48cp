@@ -1,6 +1,6 @@
 // 导入必要的包和模块
 // express 是一个 Node.js Web 应用框架，用于创建 Web 服务器
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 // cors 是一个中间件，用于处理跨域资源共享，允许其他域名的前端访问这个服务器
 import cors from 'cors';
 // 导入数据库连接函数，这个函数在 config/database.ts 中定义
@@ -8,6 +8,8 @@ import { connectDB } from './config/database';
 // 导入问卷相关的路由处理模块
 import questionnaireRoutes from './routes/questionnaire';
 import uploadRoutes from './routes/upload';
+import authRoutes from './routes/auth';
+import coupleRoutes from './routes/couple';
 import * as path from 'path';
 import fs from 'fs';
 
@@ -38,11 +40,22 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // 例如：/api/questionnaires 会被转发到问卷相关的处理函数
 app.use('/api', [
     questionnaireRoutes,
-    uploadRoutes
+    uploadRoutes,
+    authRoutes,
+    coupleRoutes
   ]);
 // 设置服务器端口
 // process.env.PORT 读取环境变量中的 PORT 值，如果没有设置则使用 3001
 const PORT = process.env.PORT || 3001;
+
+// 添加错误处理中间件
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('服务器错误:', err);
+  res.status(500).json({
+    success: false,
+    error: process.env.NODE_ENV === 'development' ? err.message : '服务器内部错误'
+  });
+});
 
 // 启动服务器，监听指定端口
 // 服务器成功启动后，会在控制台打印消息

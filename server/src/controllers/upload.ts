@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 // 导出一个名为 uploadImage 的异步函数，用于处理图片上传
 // req: 包含请求信息的对象（如文件、请求头等）
 // res: 用于发送响应给客户端的对象
-export const uploadImage = async (req: Request, res: Response): Promise<void> => {
+export const uploadImage = async (req: Request, res: Response) => {
   try {
     // 检查是否有文件被上传
     // req.file 是由 multer 中间件添加的，包含上传文件的信息

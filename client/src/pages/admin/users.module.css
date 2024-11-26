@@ -1,0 +1,54 @@
+.container {
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.tableContainer {
+  background: #fff;
+  padding: 24px;
+  border-radius: 4px;
+}
+
+.statusTag {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.statusSubmitted {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.statusReported {
+  background-color: #f6ffed;
+  color: #52c41a;
+}
+
+.statusMatched {
+  background-color: #fff7e6;
+  color: #fa8c16;
+}
+
+.matchSelector {
+  margin-top: 1rem;
+}
+
+.matchInfo {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.matchInfo p {
+  margin-bottom: 0.5rem;
+} 
