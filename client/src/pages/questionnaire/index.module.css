@@ -1,0 +1,129 @@
+/* pages/questionnaire/index.module.css */
+.container {
+  min-height: 100vh;
+  background-color: #F7EEE3;
+  padding: 2rem;
+}
+
+.formContainer {
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: #111827;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: #374151;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 2px solid #e5e7eb;
+  transition: all 0.2s ease;
+  color: #374151;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #9ca3af;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 2px solid #e5e7eb;
+  transition: all 0.2s ease;
+  border-radius: 1.5rem;
+  min-height: 150px;
+  resize: vertical;
+  color: #374151;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 1rem;
+}
+
+.radioLabel {
+  flex: 1;
+}
+
+.radioInput {
+  display: none;
+}
+
+.radioButton {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 2px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #374151;
+}
+
+.radioInput:checked + .radioButton {
+  background-color: white;
+  border-color: #9ca3af;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background-color: #111827;
+  color: white;
+  border-radius: 9999px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: #1f2937;
+}
+
+.submitButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
