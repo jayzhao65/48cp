@@ -46,6 +46,8 @@ export default function QuestionnairePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
 
 
@@ -99,6 +101,11 @@ export default function QuestionnairePage() {
         break;
       case 'images':
         if (!value.length) return '请至少上传一张图片';
+        if (value.length > 10) return '最多只能上传10张图片';
+        const invalidFormat = value.some((file: File) => 
+          !['image/jpeg', 'image/png'].includes(file.type)
+        );
+        if (invalidFormat) return '只支持 JPG/PNG 格式的图片';
         break;
     }
     return '';
@@ -116,27 +123,32 @@ export default function QuestionnairePage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitError(null);
-
-
-    // 验证所有字段
-    const newErrors: FormErrors = {};
-    Object.keys(formData).forEach(key => {
-      const error = validateField(key, formData[key as keyof FormData]);
-      if (error) newErrors[key] = error;
-    });
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setIsSubmitting(false);
-      return;
-    }
-
+    setIsLoading(true);
     try {
-      // TODO: 实现表单提交逻辑
+      e.preventDefault();
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+
+      // 验证所有字段
+      const newErrors: FormErrors = {};
+      Object.keys(formData).forEach(key => {
+        const error = validateField(key, formData[key as keyof FormData]);
+        if (error) newErrors[key] = error;
+      });
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 应该先验证图片是否上传成功
       const uploadResult = await uploadApi.uploadImages(formData.images);
+      if (!uploadResult || !uploadResult.length) {
+        throw new Error('图片上传失败');
+      }
+      
       const submitData: QuestionnaireData = {
         name: formData.name,
         phone: formData.phone,
@@ -165,6 +177,7 @@ export default function QuestionnairePage() {
       }));
     } finally {
       setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -242,7 +255,7 @@ export default function QuestionnairePage() {
               value={formData.zodiac || ''}
               onChange={handleChange}
             >
-              <option value="">请选择星座</option>
+              <option value="">���选择星座</option>
               {[
                 '白羊座', '金牛座', '双子座', '巨蟹座',
                 '狮子座', '处女座', '天秤座', '天蝎座',

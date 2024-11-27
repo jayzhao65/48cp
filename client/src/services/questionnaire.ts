@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import axios from 'axios';
 
 // 定义问卷数据类型
 export interface QuestionnaireData {
@@ -21,9 +22,14 @@ export const questionnaireApi = {
   // 提交问卷
   submit: async (data: QuestionnaireData) => {
     try {
-      const response = await apiClient.post('/questionnaire', data);
+      const response = await apiClient.post('/questionnaire', data, {
+        timeout: 30000, // 添加超时设置
+      });
       return response.data;
     } catch (error) {
+      if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
+        throw new Error('请求超时，请重试');
+      }
       throw error;
     }
   },

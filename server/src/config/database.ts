@@ -5,6 +5,8 @@ dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/48cp';
 
+mongoose.set('strictQuery', false);
+
 export const connectDB = async () => {
   try {
     await mongoose.connect(MONGODB_URI, {

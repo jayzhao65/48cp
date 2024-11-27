@@ -53,22 +53,30 @@ export const submitQuestionnaire = async (req: Request, res: Response) => {
   }
 };
 export const getQuestionnaires = async (req: Request, res: Response) => {
-    try {
-      const questionnaires = await Questionnaire.find()
-        .sort({ createdAt: -1 });
-      
-      // 修改返回格式，确保包含 data 字段
-      res.json({
-        success: true,
-        data: questionnaires  // 确保数据在 data 字段中
-      });
-    } catch (error) {
-      console.error('获取问卷列表失败:', error); // 添加错误日志
-      res.status(500).json({ 
-        success: false, 
-        error: '获取问卷列表失败' 
+  try {
+    const questionnaires = await Questionnaire.find()
+      .sort({ createdAt: -1 });
+    
+    // 应该检查查询结果
+    if (!questionnaires) {
+      return res.status(404).json({
+        success: false,
+        error: '未找到问卷数据'
       });
     }
+    
+    res.json({
+      success: true,
+      data: questionnaires || []
+    });
+  } catch (error) {
+    // 应该记录具体错误信息
+    console.error('获取问卷列表失败:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: '获取问卷列表失败' 
+    });
+  }
 };
 
 export const getQuestionnaireById = async (req: Request, res: Response) => {
