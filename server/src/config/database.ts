@@ -3,9 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const MONGODB_URI = process.env.NODE_ENV === 'production'
-  ? 'mongodb://jayzhao:ilovediyi@8.218.98.220:27017/48cp'  // 确保用户名和密码正确
-  : 'mongodb://localhost:27017/48cp';
+const MONGODB_URI = 'mongodb://8.218.98.220:27017/48cp';
 
 export const connectDB = async () => {
   try {
