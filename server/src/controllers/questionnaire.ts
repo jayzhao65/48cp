@@ -10,6 +10,8 @@ import axios from 'axios';
 
 // 导入 Couple 模型
 import { Couple } from '../models/couple';
+import { AIResponse } from '../types/api';
+
 
 // 导出一个异步函数，用于处理提交问卷的请求
 // async 表示这是一个异步函数，可以等待其他异步操作完成
@@ -140,7 +142,7 @@ export const getQuestionnaireById = async (req: Request, res: Response) => {
 
       console.log('OpenRouter API 响应成功');
       // 解析 AI 响应
-      const aiResponse = response.data.choices[0].message.content;
+      const aiResponse = (response.data as AIResponse).choices[0].message.content;
 
       // 更新问卷数据
       const report = {
