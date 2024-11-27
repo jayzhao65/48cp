@@ -27,9 +27,14 @@ if (!fs.existsSync(uploadDir)) {
 // 调用数据库连接函数，连接到 MongoDB 数据库
 connectDB();
 
-// 配置中间件
-// 启用 CORS，允许跨域请求
-app.use(cors());
+// 配置 CORS，允许特定域名访问并支持凭证
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? ['http://8.218.98.220', 'http://8.218.98.220:3001']
+    : ['http://localhost:5173', 'http://localhost:3001'],
+  credentials: true
+}));
+
 // 启用 JSON 解析，允许服务器解析请求体中的 JSON 数据
 app.use(express.json());
 
@@ -61,6 +66,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // 启动服务器，监听指定端口
 // 服务器成功启动后，会在控制台打印消息
-app.listen(PORT, () => {
+app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 });
