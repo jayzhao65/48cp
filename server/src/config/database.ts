@@ -10,7 +10,7 @@ const MONGODB_URI = process.env.NODE_ENV === 'production'
 export const connectDB = async () => {
   try {
     await mongoose.connect(MONGODB_URI, {
-      authSource: 'admin'  // 添加这个选项
+      authSource: '48cp'  // 添加这个选项
     });
     console.log('MongoDB connected');
   } catch (error) {
