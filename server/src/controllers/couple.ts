@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { Couple } from '../models/couple';
 import axios from 'axios';
+import { AIResponse } from '../types/api';
+
 
 export const getCouples = async (req: Request, res: Response) => {
   try {
@@ -74,7 +76,8 @@ export const generateTask = async (req: Request, res: Response) => {
       }
     });
 
-    const taskContent = JSON.parse(response.data.choices[0].message.content);
+    const taskContent = JSON.parse((response.data as AIResponse).choices[0].message.content);
+
 
     // 确保解析后的数据包含所有必需字段
     if (!taskContent.title || !taskContent.description || !taskContent.steps || 
