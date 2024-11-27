@@ -1,14 +1,16 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://8.218.98.220:3001';
+const baseURL = import.meta.env.PROD 
+  ? 'http://8.218.98.220:3001/api'  // 生产环境
+  : 'http://localhost:3001/api';     // 开发环境
 
 export const apiClient = axios.create({
-    baseURL: BASE_URL,
-    timeout: 15000,
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  });
+  baseURL,
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
 apiClient.interceptors.response.use(
     response => response,
