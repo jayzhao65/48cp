@@ -52,14 +52,34 @@ export default function ImageUpload({
       return;
     }
 
-    // 创建预览URL
-    const newPreviews = await Promise.all(
-      validFiles.map(file => URL.createObjectURL(file))
-    );
+    try {
+      // 创建 FormData 对象
+      const formData = new FormData();
+      validFiles.forEach(file => {
+        formData.append('images', file);
+      });
 
-    setPreviews(prev => [...prev, ...newPreviews]);
-    onChange?.([...value, ...validFiles]);
-    setError('');
+      // 发送上传请求
+      const response = await fetch('http://8.218.98.220:3001/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('上传失败');
+      }
+
+      const result = await response.json();
+      
+      // 创建预览URL
+      const newPreviews = validFiles.map(file => URL.createObjectURL(file));
+      setPreviews(prev => [...prev, ...newPreviews]);
+      onChange?.([...value, ...validFiles]);
+      setError('');
+    } catch (error) {
+      setError('图片上传失败，请重试');
+      console.error('Upload error:', error);
+    }
   };
 
   // 处理图片删除
