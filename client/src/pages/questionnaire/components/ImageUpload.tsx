@@ -53,20 +53,34 @@ export default function ImageUpload({
     }
 
     try {
-      // 创建 FormData 对象
+      // 打印要上传的文件信息
+      console.log('Uploading file:', {
+        name: validFiles[0].name,
+        type: validFiles[0].type,
+        size: validFiles[0].size
+      });
+
       const formData = new FormData();
       validFiles.forEach(file => {
         formData.append('image', file);
       });
 
-      // 发送上传请求
+      // 打印 FormData 内容
+      console.log('FormData entries:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
       const response = await fetch('http://8.218.98.220:3001/api/upload', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('上传失败');
+        const errorText = await response.text(); // 先获取原始响应文本
+        console.error('Server response:', errorText); // 打印原始响应
+        const errorData = errorText ? JSON.parse(errorText) : { error: '上传失败' };
+        throw new Error(errorData.error || '上传失败');
       }
 
       const result = await response.json();
@@ -77,8 +91,8 @@ export default function ImageUpload({
       onChange?.([...value, ...validFiles]);
       setError('');
     } catch (error) {
+      console.error('Upload error details:', error);
       setError('图片上传失败，请重试');
-      console.error('Upload error:', error);
     }
   };
 

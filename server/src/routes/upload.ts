@@ -64,14 +64,19 @@ const router = express.Router();
 // upload.single('image') 是中间件，表示接受一个名为 'image' 的单个文件
 // uploadImage 是处理上传的控制器函数
 router.post('/upload', upload.single('image'), async (req, res, next) => {
-  console.log('Upload request received');  // 添加日志
-  console.log('Request body:', req.body);  // 添加请求体日志
-  console.log('Request file:', req.file);  // 添加文件信息日志
+  console.log('Upload request received');
+  console.log('Request headers:', req.headers);
+  console.log('Request body:', req.body);
+  console.log('Request file:', req.file);
+  console.log('Files:', req.files); // 检查是否有多个文件
   
   try {
     await uploadImage(req, res);
   } catch (error) {
-    console.error('Upload error:', error);  // 添加错误日志
+    console.error('Upload error details:', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined
+    });
     next(error);
   }
 });
