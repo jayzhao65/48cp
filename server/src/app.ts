@@ -13,6 +13,7 @@ import coupleRoutes from './routes/couple';
 import dashboardRoutes from './routes/dashboard';
 import * as path from 'path';
 import fs from 'fs';
+import multer from 'multer';
 
 
 // 创建一个 Express 应用实例
@@ -42,10 +43,12 @@ app.use(cors({
 }));
 
 // 添加在 app.use(cors()) 之后，路由之前
-app.use((req, res, next) => {
-  console.log('\n=== New Request ===');
-  console.log('URL:', req.url);
-  console.log('Method:', req.method);
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Request Headers:', req.headers);
+  if (req.body) console.log('Request Body:', req.body);
+  if (req.files) console.log('Request Files:', req.files);
+  if (req.file) console.log('Request File:', req.file);
   next();
 });
 
@@ -70,15 +73,16 @@ app.use('/api', [
 const PORT = process.env.PORT || 3001;
 
 // 添加错误处理中间件
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('Server error details:', {  // 添加详细错误日志
-    error: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method,
-    body: req.body,
-    file: req.file
-  });
+app.use((err: Error, req: Request, res: Response, next: NextFunction): void => {
+  console.error('Error:', err);
+  if (err instanceof multer.MulterError) {
+    res.status(400).json({
+      success: false,
+      error: '文件上传失败：' + err.message,
+      code: 'UPLOAD_ERROR'
+    });
+    return;
+  }
   
   res.status(500).json({
     success: false,
@@ -89,5 +93,8 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // 启动服务器，监听指定端口
 // 服务器成功启动后，会在控制台打印消息
 app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log('=================================');
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log('=================================');
 });

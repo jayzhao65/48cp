@@ -5,13 +5,19 @@ import { uploadImage } from '../controllers/upload';  // 导入上传图片的�
 import path from 'path';
 import fs from 'fs';
 
+// 在文件顶部添加确保上传目录存在的代码
+const uploadDir = 'uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 // 配置 multer 的存储选项
 const storage = multer.diskStorage({
   // 设置文件存储的目标路径
   destination: (req, file, cb) => {
-    console.log('Multer destination:', 'uploads/');  // 添加日志
+    console.log('Multer destination:', uploadDir);  // 添加日志
     console.log('File info:', file);  // 添加文件信息日志
-    cb(null, 'uploads/');  // 将上传的文件保存到 uploads 文件夹中
+    cb(null, uploadDir);  // 使用定义的上传目录
   },
   // 设置保存的文件名
   filename: (req, file, cb) => {
