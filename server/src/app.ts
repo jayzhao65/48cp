@@ -27,10 +27,21 @@ if (!fs.existsSync(uploadDir)) {
 // 调用数据库连接函数，连接到 MongoDB 数据库
 connectDB();
 
+// 添加在 CORS 配置前
+console.log('Current NODE_ENV:', process.env.NODE_ENV);
+console.log('CORS origins:', process.env.NODE_ENV === 'production'
+  ? ['http://8.218.98.220', 'http://8.218.98.220:3001']
+  : ['http://localhost:5173', 'http://localhost:3001']);
+
 // 配置 CORS，允许特定域名访问并支持凭证
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['http://8.218.98.220', 'http://8.218.98.220:3001']
+    ? [
+        'http://8.218.98.220', 
+        'http://8.218.98.220:3001',
+        'http://8.218.98.220:80',  // 添加这个
+        'http://8.218.98.220:443'  // 如果使用 HTTPS
+      ]
     : ['http://localhost:5173', 'http://localhost:3001'],
   credentials: true
 }));
