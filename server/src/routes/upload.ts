@@ -57,8 +57,10 @@ const router = express.Router();
 // uploadImage 是处理上传的控制器函数
 router.post('/upload', upload.single('image'), async (req, res, next) => {
   try {
+    console.log('收到上传请求:', req.file);
     await uploadImage(req, res);
   } catch (error) {
+    console.error('上传错误:', error);
     next(error);
   }
 });

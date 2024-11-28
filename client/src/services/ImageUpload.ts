@@ -14,8 +14,11 @@ export const uploadApi = {
         },
       });
       return response.data;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      // 提供更详细的错误信息
+      const errorMessage = error.response?.data?.error || error.message || '上传失败';
+      console.error('上传错误:', errorMessage);
+      throw new Error(errorMessage);
     }
   },
 
