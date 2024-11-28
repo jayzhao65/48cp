@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const baseURL = import.meta.env.PROD 
-  ? 'http://8.218.98.220:3001/api'  // 生产环境
+  ? '/api'  // 生产环境
   : 'http://localhost:3001/api';     // 开发环境
 
 export const apiClient = axios.create({
