@@ -47,7 +47,8 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,  // 使用上面定义的存储配置
   limits: {
-    fileSize: 10 * 1024 * 1024  // 限制文件大小为10MB (10 * 1024 * 1024 字节)
+    fileSize: 10 * 1024 * 1024,  // 限制文件大小为10MB (10 * 1024 * 1024 字节)
+    files: 10
   },
   // 文件过滤器，用于限制上传的文件类型
   fileFilter: (req, file, cb) => {
@@ -125,6 +126,17 @@ router.post('/upload', (req, res, next) => {
       });
     });
   });
+
+  // 处理成功的上传
+  try {
+    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file?.filename}`;
+    res.json({
+      success: true,
+      url: imageUrl
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 // 导出路由供其他文件使用
