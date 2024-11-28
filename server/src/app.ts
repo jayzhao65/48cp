@@ -43,6 +43,8 @@ app.use(cors({
         'http://8.218.98.220:443'  // 如果使用 HTTPS
       ]
     : ['http://localhost:5173', 'http://localhost:3001'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 允许的 HTTP 方法
+  allowedHeaders: ['Content-Type', 'Authorization'], // 允许的请求头
   credentials: true
 }));
 
