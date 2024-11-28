@@ -70,8 +70,8 @@ export default function ImageUpload({
         console.log('FormData entry:', key, value);
       }
 
-      console.log('Sending request to:', 'http://8.218.98.220:3001/api/upload');
-      const response = await fetch('http://8.218.98.220:3001/api/upload', {
+      console.log('Sending request to:', 'http://8.218.98.220/api/upload');
+      const response = await fetch('http://8.218.98.220/api/upload', {
         method: 'POST',
         body: formData,
       });
