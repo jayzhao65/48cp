@@ -2,6 +2,8 @@
 import express, { NextFunction } from 'express';  // 导入express框架，用于创建Web服务器和路由
 import multer from 'multer';    // 导入multer中间件，用于处理文件上传
 import { uploadImage } from '../controllers/upload';  // 导入上传图片的控制器函数
+import path from 'path';
+import fs from 'fs';
 
 // 配置 multer 的存储选项
 const storage = multer.diskStorage({
@@ -63,22 +65,60 @@ const router = express.Router();
 // 定义 POST 路由 '/upload'
 // upload.single('image') 是中间件，表示接受一个名为 'image' 的单个文件
 // uploadImage 是处理上传的控制器函数
-router.post('/upload', upload.single('image'), async (req, res, next) => {
-  console.log('Upload request received');
-  console.log('Request headers:', req.headers);
-  console.log('Request body:', req.body);
-  console.log('Request file:', req.file);
-  console.log('Files:', req.files); // 检查是否有多个文件
+router.post('/upload', (req, res, next) => {
+  console.log('=== Upload Request Start ===');
   
-  try {
-    await uploadImage(req, res);
-  } catch (error) {
-    console.error('Upload error details:', {
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined
+  // 使用回调方式处理 multer 错误
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      console.error('Multer Error:', err);
+      return res.status(500).json({
+        success: false,
+        error: err.message || '文件上传失败'
+      });
+    }
+
+    // 检查文件是否存在
+    if (!req.file) {
+      console.error('No file uploaded');
+      return res.status(400).json({
+        success: false,
+        error: '请选择要上传的文件'
+      });
+    }
+
+    console.log('File received:', {
+      filename: req.file.filename,
+      mimetype: req.file.mimetype,
+      size: req.file.size
     });
-    next(error);
-  }
+
+    // 确保上传目录存在
+    const uploadDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // 检查文件权限
+    try {
+      fs.accessSync(uploadDir, fs.constants.W_OK);
+    } catch (error) {
+      console.error('Upload directory not writable:', uploadDir);
+      return res.status(500).json({
+        success: false,
+        error: '服务器配置错误'
+      });
+    }
+
+    // 处理上传
+    uploadImage(req, res).catch(error => {
+      console.error('Upload Error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || '文件上传失败'
+      });
+    });
+  });
 });
 
 // 导出路由供其他文件使用
