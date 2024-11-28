@@ -32,8 +32,12 @@ export const uploadApi = {
   // 上传多张图片
   uploadImages: async (files: File[]) => {
     try {
-      const uploadPromises = files.map(file => uploadApi.uploadImage(file));
-      const results = await Promise.all(uploadPromises);
+      // 一次上传一个文件
+      const results = [];
+      for (const file of files) {
+        const result = await uploadApi.uploadImage(file);
+        results.push(result);
+      }
       return results;
     } catch (error) {
       throw error;
