@@ -33,19 +33,12 @@ console.log('CORS origins:', process.env.NODE_ENV === 'production'
   ? ['http://8.218.98.220', 'http://8.218.98.220:3001']
   : ['http://localhost:5173', 'http://localhost:3001']);
 
-// 配置 CORS，允许特定域名访问并支持凭证
+// 简化 CORS 配置，允许所有来源访问
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? [
-        'http://8.218.98.220', 
-        'http://8.218.98.220:3001',
-        'http://8.218.98.220:80',  // 添加这个
-        'http://8.218.98.220:443'  // 如果使用 HTTPS
-      ]
-    : ['http://localhost:5173', 'http://localhost:3001'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 允许的 HTTP 方法
-  allowedHeaders: ['Content-Type', 'Authorization'], // 允许的请求头
-  credentials: true
+  origin: '*',  // 允许所有来源访问
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false  // 改为 false，因为 credentials 模式下不能用 '*'
 }));
 
 // 启用 JSON 解析，允许服务器解析请求体中的 JSON 数据
