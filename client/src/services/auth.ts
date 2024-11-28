@@ -3,7 +3,7 @@
 // 输出：登录结果（包含token）
 // 与其他文件关系：
 // - 被前端登录页面调用
-// - 通过 apiClient 与后端 /api/login 接口通信
+// - 通过 apiClient 与后端 /login 接口通信
 // - 将token存储在localStorage中供其他API请求使用
 import { apiClient } from './api';
 
