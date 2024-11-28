@@ -56,7 +56,7 @@ export default function ImageUpload({
       // 创建 FormData 对象
       const formData = new FormData();
       validFiles.forEach(file => {
-        formData.append('images', file);
+        formData.append('image', file);
       });
 
       // 发送上传请求
