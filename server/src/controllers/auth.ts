@@ -14,19 +14,30 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export const login = async (req: Request, res: Response) => {
-  console.log('收到登录请求:', req.body);  // 添加日志
+  try {
+    console.log('====== 登录请求开始 ======');
+    console.log('请求体:', JSON.stringify(req.body, null, 2));
   
   const { username, password } = req.body;
   
-  console.log('验证凭据:', { username, password });  // 添加日志
+  console.log('验证凭据中...');
+  if (!username || !password) {
+    console.log('用户名或密码为空');
+    return res.status(400).json({
+      success: false,
+      error: '用户名和密码不能为空'
+    });
+  }
   
   // 验证用户名和密码是否与配置中的管理员凭据匹配
   if (username === ADMIN_CREDENTIALS.username && 
       password === ADMIN_CREDENTIALS.password) {
     // 如果验证通过，生成JWT token
     // token中包含用户名信息，24小时后过期
+    console.log('验证成功，生成 token');
     const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '24h' });
-    
+    console.log('登录成功');
+
     // 返回成功响应和token
     res.json({
       success: true,
@@ -34,9 +45,17 @@ export const login = async (req: Request, res: Response) => {
     });
   } else {
     // 如果验证失败，返回401状态码和错误信息
+    console.log('验证失败：用户名或密码错误');
     res.status(401).json({
       success: false,
       error: '账号或密码错误'
     });
   }
+} catch (error) {
+  console.error('登录过程发生错误:', error);
+  return res.status(500).json({
+    success: false,
+    error: '服务器错误'
+  });
+}
 };

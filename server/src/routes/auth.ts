@@ -5,12 +5,13 @@
 // - 连接前端请求与后端控制器
 // - 使用 ../controllers/auth 中的登录控制器
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { login } from '../controllers/auth';
 
 const router = express.Router();
 
-// 配置POST /login路由，当收到请求时调用login控制器
-router.post('/login', login);
+router.post('/login', async (req: Request, res: Response) => {
+  await login(req, res);
+});
 
 export default router;
