@@ -63,7 +63,15 @@ const PORT = process.env.PORT || 3001;
 
 // 添加错误处理中间件
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('服务器错误:', err);
+  console.error('Server error details:', {  // 添加详细错误日志
+    error: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    body: req.body,
+    file: req.file
+  });
+  
   res.status(500).json({
     success: false,
     error: process.env.NODE_ENV === 'development' ? err.message : '服务器内部错误'

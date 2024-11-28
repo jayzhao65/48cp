@@ -7,11 +7,13 @@ import { uploadImage } from '../controllers/upload';  // 导入上传图片的�
 const storage = multer.diskStorage({
   // 设置文件存储的目标路径
   destination: (req, file, cb) => {
-    // cb 是回调函数，第一个参数是错误（null表示没有错误），第二个参数是目标路径
+    console.log('Multer destination:', 'uploads/');  // 添加日志
+    console.log('File info:', file);  // 添加文件信息日志
     cb(null, 'uploads/');  // 将上传的文件保存到 uploads 文件夹中
   },
   // 设置保存的文件名
   filename: (req, file, cb) => {
+    console.log('Processing file:', file.originalname);  // 添加日志
     
     // 生成 MMDD 格式的日期
     const date = new Date();
@@ -26,7 +28,10 @@ const storage = multer.diskStorage({
     const fileExt = file.originalname.split('.').pop();
     
     // 组合新的文件名: 名字-MMDD-随机数.扩展名
-    cb(null, `${dateStr}-${randomSuffix}.${fileExt}`);
+    const filename = `${dateStr}-${randomSuffix}.${fileExt}`;
+    
+    console.log('Generated filename:', filename);  // 添加日志
+    cb(null, filename);
   }
 });
 
@@ -38,12 +43,15 @@ const upload = multer({
   },
   // 文件过滤器，用于限制上传的文件类型
   fileFilter: (req, file, cb) => {
+    console.log('Checking file type:', file.mimetype);  // 添加日志
     // 检查文件类型是否为图片
     if (!file.mimetype.startsWith('image/')) {
+      console.log('File rejected: not an image');  // 添加日志
       // 如果不是图片类型，返回错误
       cb(new Error('只能上传图片文件'));
       return;
     }
+    console.log('File accepted');  // 添加日志
     // 如果是图片类型，允许上传
     cb(null, true);
   }
@@ -56,11 +64,14 @@ const router = express.Router();
 // upload.single('image') 是中间件，表示接受一个名为 'image' 的单个文件
 // uploadImage 是处理上传的控制器函数
 router.post('/upload', upload.single('image'), async (req, res, next) => {
+  console.log('Upload request received');  // 添加日志
+  console.log('Request body:', req.body);  // 添加请求体日志
+  console.log('Request file:', req.file);  // 添加文件信息日志
+  
   try {
-    console.log('收到上传请求:', req.file);
     await uploadImage(req, res);
   } catch (error) {
-    console.error('上传错误:', error);
+    console.error('Upload error:', error);  // 添加错误日志
     next(error);
   }
 });
