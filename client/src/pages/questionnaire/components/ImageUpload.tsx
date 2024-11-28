@@ -38,7 +38,14 @@ export default function ImageUpload({
 
   // 处理文件选择
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File selection started');
     const files = Array.from(event.target.files || []);
+    
+    console.log('Selected files:', files.map(f => ({
+      name: f.name,
+      type: f.type,
+      size: f.size
+    })));
     
     // 检查文件数量
     if (value.length + files.length > maxFiles) {
@@ -53,27 +60,21 @@ export default function ImageUpload({
     }
 
     try {
-      // 打印要上传的文件信息
-      console.log('Uploading file:', {
-        name: validFiles[0].name,
-        type: validFiles[0].type,
-        size: validFiles[0].size
-      });
-
+      console.log('Starting upload...');
       const formData = new FormData();
       validFiles.forEach(file => {
         formData.append('image', file);
       });
 
-      // 打印 FormData 内容
-      console.log('FormData entries:');
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
-
+      console.log('Sending request to:', 'http://8.218.98.220:3001/api/upload');
       const response = await fetch('http://8.218.98.220:3001/api/upload', {
         method: 'POST',
         body: formData,
+      });
+
+      console.log('Response received:', {
+        status: response.status,
+        statusText: response.statusText
       });
 
       if (!response.ok) {

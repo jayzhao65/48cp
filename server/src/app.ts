@@ -41,6 +41,15 @@ app.use(cors({
   credentials: false  // 改为 false，因为 credentials 模式下不能用 '*'
 }));
 
+// 添加在 app.use(cors()) 之后，路由之前
+app.use((req, res, next) => {
+  console.log('=== Incoming Request ===');
+  console.log('URL:', req.url);
+  console.log('Method:', req.method);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 // 启用 JSON 解析，允许服务器解析请求体中的 JSON 数据
 app.use(express.json());
 
