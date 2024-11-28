@@ -74,7 +74,12 @@ const PORT = process.env.PORT || 3001;
 
 // 添加错误处理中间件
 app.use((err: Error, req: Request, res: Response, next: NextFunction): void => {
-  console.error('Error:', err);
+  console.error('Error:', {
+    name: err.name,
+    message: err.message,
+    stack: err.stack,
+    multerError: err instanceof multer.MulterError
+  });
   if (err instanceof multer.MulterError) {
     res.status(400).json({
       success: false,
