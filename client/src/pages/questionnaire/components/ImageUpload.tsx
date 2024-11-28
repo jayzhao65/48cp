@@ -65,6 +65,11 @@ export default function ImageUpload({
         formData.append('image', file);
       });
 
+      // 打印 FormData 内容
+      for (let [key, value] of formData.entries()) {
+        console.log('FormData entry:', key, value);
+      }
+
       console.log('Sending request to:', 'http://8.218.98.220:3001/api/upload');
       const response = await fetch('http://8.218.98.220:3001/api/upload', {
         method: 'POST',

@@ -123,13 +123,11 @@ export default function QuestionnairePage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    setIsLoading(true);
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError(null);
+
     try {
-      e.preventDefault();
-      setIsSubmitting(true);
-      setSubmitError(null);
-
-
       // 验证所有字段
       const newErrors: FormErrors = {};
       Object.keys(formData).forEach(key => {
@@ -255,7 +253,7 @@ export default function QuestionnairePage() {
               value={formData.zodiac || ''}
               onChange={handleChange}
             >
-              <option value="">���选择星座</option>
+              <option value="">选择星座</option>
               {[
                 '白羊座', '金牛座', '双子座', '巨蟹座',
                 '狮子座', '处女座', '天秤座', '天蝎座',
@@ -358,7 +356,7 @@ export default function QuestionnairePage() {
               className={styles.input}
               value={formData.occupation}
               onChange={handleChange}
-              placeholder="请输入你的职业或专业"
+              placeholder="请输入你的职业��专业"
             />
             {errors.occupation && <span className={styles.error}>{errors.occupation}</span>}
           </div>
