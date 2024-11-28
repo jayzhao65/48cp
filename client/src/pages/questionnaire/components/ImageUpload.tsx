@@ -65,10 +65,19 @@ export default function ImageUpload({
         formData.append('image', file);
       });
 
-      // 打印 FormData 内容
+      console.log('=== 开始打印 FormData ===');
       for (let [key, value] of formData.entries()) {
-        console.log('FormData entry:', key, value);
+        if (value instanceof File) {
+          console.log('FormData entry:', key, {
+            name: value.name,
+            size: value.size,
+            type: value.type
+          });
+        } else {
+          console.log('FormData entry:', key, value);
+        }
       }
+      console.log('=== FormData 打印结束 ===');
 
       console.log('Sending request to:', 'http://8.218.98.220/api/upload');
       const response = await fetch('http://8.218.98.220/api/upload', {
