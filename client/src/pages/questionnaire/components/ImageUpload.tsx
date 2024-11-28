@@ -15,6 +15,8 @@ export default function ImageUpload({
   maxFiles = 10,
   maxSize = 10 
 }: ImageUploadProps) {
+  console.log('ImageUpload component rendered');
+  
   const [previews, setPreviews] = useState<string[]>([]);
   const [error, setError] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,14 +40,11 @@ export default function ImageUpload({
 
   // 处理文件选择
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('File selection started');
-    const files = Array.from(event.target.files || []);
+    console.log('handleFileSelect triggered');
+    console.log('Files:', event.target.files);
     
-    console.log('Selected files:', files.map(f => ({
-      name: f.name,
-      type: f.type,
-      size: f.size
-    })));
+    const files = Array.from(event.target.files || []);
+    console.log('Files array:', files);
     
     // 检查文件数量
     if (value.length + files.length > maxFiles) {
@@ -111,6 +110,7 @@ export default function ImageUpload({
 
   // 触发文件选择
   const handleClick = () => {
+    console.log('Upload button clicked');
     fileInputRef.current?.click();
   };
 
@@ -123,7 +123,10 @@ export default function ImageUpload({
         className={styles.fileInput}
         accept="image/*"
         multiple
-        onChange={handleFileSelect}
+        onChange={(e) => {
+          console.log('Input change event triggered');
+          handleFileSelect(e);
+        }}
       />
       
       <div className={styles.uploadArea} onClick={handleClick}>
