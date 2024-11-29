@@ -73,10 +73,7 @@ const router = express.Router();
 // upload.single('image') 是中间件，表示接受一个名为 'image' 的单个文件
 // uploadImage 是处理上传的控制器函数
 router.post('/upload', (req, res, next) => {
-  // 1. 打印请求信息
   console.log('=============== 上传请求开始 ===============');
-  console.log('请求头:', req.headers);
-  console.log('请求体:', req.body);
   
   // 2. 确保上传目录存在
   if (!fs.existsSync(uploadDir)) {
@@ -99,25 +96,7 @@ router.post('/upload', (req, res, next) => {
       });
     }
 
-
-    // 确保上传目录存在
-    const uploadDir = path.join(__dirname, '../../uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // 检查文件权限
-    try {
-      fs.accessSync(uploadDir, fs.constants.W_OK);
-    } catch (error) {
-      console.error('Upload directory not writable:', uploadDir);
-      return res.status(500).json({
-        success: false,
-        error: '服务器配置错误'
-      });
-    }
-
-    // 处理上传
+    // 调用 uploadImage 控制器
     uploadImage(req, res).catch(error => {
       console.error('Upload Error:', error);
       res.status(500).json({
@@ -127,7 +106,7 @@ router.post('/upload', (req, res, next) => {
     });
   });
 
-  // 处理成功的上传
+  // 这里又尝试发送一次响应
   try {
     const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file?.filename}`;
     res.json({
@@ -135,7 +114,6 @@ router.post('/upload', (req, res, next) => {
       url: imageUrl
     });
   } catch (error) {
-    console.error('上传处理错误:', error);
     next(error);
   }
 });

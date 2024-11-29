@@ -20,6 +20,7 @@ interface FormData {
   occupation: string;
   self_intro: string;
   images: File[];
+  imageUrls: string[];
 }
 
 interface FormErrors {
@@ -28,8 +29,6 @@ interface FormErrors {
 
 export default function QuestionnairePage() {
   useEffect(() => {
-    // 使用 alert 来确保一定能看到
-    window.alert('测试：问卷组件已加载');
   }, []);
 
   const [formData, setFormData] = useState<FormData>({
@@ -44,7 +43,8 @@ export default function QuestionnairePage() {
     orientation: '',
     occupation: '',
     self_intro: '',
-    images: []
+    images: [],
+    imageUrls: []
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -128,10 +128,7 @@ export default function QuestionnairePage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    window.alert('开始提交表单');
-    
+    e.preventDefault();    
     if (typeof console !== 'undefined') {
       console.log('表单数据:', formData);
     }
@@ -153,23 +150,7 @@ export default function QuestionnairePage() {
         return;
       }
 
-      // 2. 先上传图片获取 URL
-      window.alert('准备上传图片');
-      if (typeof console !== 'undefined') {
-        console.log('准备上传的图片：', formData.images);
-      }
-      
-      const uploadResult = await uploadApi.uploadImages(formData.images);
-      console.log('上传结果：', uploadResult);
-      
-      if (!uploadResult || !uploadResult.length) {
-        throw new Error('图片上传失败');
-      }
-
-      const imageUrls = uploadResult.map(result => result.url);
-      console.log('处理后的图片URL数组：', imageUrls);
-
-      // 3. 构造完整的提交数据
+      // 2. 构造完整的提交数据
       const submitData: QuestionnaireData = {
         name: formData.name,
         phone: formData.phone,
@@ -182,7 +163,7 @@ export default function QuestionnairePage() {
         orientation: formData.orientation as 'straight' | 'gay' | 'bisexual',
         occupation: formData.occupation,
         self_intro: formData.self_intro,
-        images: imageUrls
+        images: formData.imageUrls
       };
       console.log('完整的提交数据：', submitData);
 
@@ -404,7 +385,11 @@ export default function QuestionnairePage() {
             <label className={styles.label}>社交媒体截图</label>
             <ImageUpload
               value={formData.images}
-              onChange={(files) => setFormData(prev => ({ ...prev, images: files }))}
+              onChange={(files, urls) => setFormData(prev => ({ 
+                ...prev, 
+                images: files,
+                imageUrls: [...(prev.imageUrls || []), ...(urls || [])]
+              }))}
               maxFiles={10}
               maxSize={10}
             />

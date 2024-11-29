@@ -4,7 +4,7 @@ import styles from './ImageUpload.module.css';
 
 interface ImageUploadProps {
   value?: File[];
-  onChange?: (files: File[]) => void;
+  onChange?: (files: File[], urls?: string[]) => void;
   maxFiles?: number;
   maxSize?: number; // in MB
 }
@@ -55,7 +55,8 @@ export default function ImageUpload({
     }
 
     try {
-      // 一次处理一个文件
+      const uploadedUrls: string[] = [];
+      
       for (const file of validFiles) {
         const formData = new FormData();
         formData.append('image', file);
@@ -72,13 +73,14 @@ export default function ImageUpload({
         }
 
         const result = await response.json();
-        
-        // 为每个成功上传的文件创建预览
-        const previewUrl = URL.createObjectURL(file);
-        setPreviews(prev => [...prev, previewUrl]);
-        onChange?.([...value, file]);
+        if (result.success && result.url) {
+          uploadedUrls.push(result.url);
+          const previewUrl = URL.createObjectURL(file);
+          setPreviews(prev => [...prev, previewUrl]);
+        }
       }
       
+      onChange?.([...value, ...validFiles], uploadedUrls);
       setError('');
     } catch (error) {
       console.error('Upload error details:', error);
