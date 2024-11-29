@@ -142,10 +142,16 @@ export default function QuestionnairePage() {
       }
 
       // 2. 先上传图片获取 URL
+      console.log('准备上传的图片：', formData.images);
       const uploadResult = await uploadApi.uploadImages(formData.images);
+      console.log('上传结果：', uploadResult);
+      
       if (!uploadResult || !uploadResult.length) {
         throw new Error('图片上传失败');
       }
+
+      const imageUrls = uploadResult.map(result => result.url);
+      console.log('处理后的图片URL数组：', imageUrls);
 
       // 3. 构造完整的提交数据
       const submitData: QuestionnaireData = {
@@ -160,8 +166,9 @@ export default function QuestionnairePage() {
         orientation: formData.orientation as 'straight' | 'gay' | 'bisexual',
         occupation: formData.occupation,
         self_intro: formData.self_intro,
-        images: uploadResult.map(result => result.url)  // 使用上传后的图片 URL
+        images: imageUrls
       };
+      console.log('完整的提交数据：', submitData);
 
       // 4. 一次性提交到问卷接口
       const result = await questionnaireApi.submit(submitData);
