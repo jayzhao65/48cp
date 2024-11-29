@@ -128,7 +128,7 @@ export default function QuestionnairePage() {
     setSubmitError(null);
 
     try {
-      // 验证所有字段
+      // 1. 验证字段
       const newErrors: FormErrors = {};
       Object.keys(formData).forEach(key => {
         const error = validateField(key, formData[key as keyof FormData]);
@@ -141,31 +141,34 @@ export default function QuestionnairePage() {
         return;
       }
 
-      // 应该先验证图片是否上传成功
+      // 2. 先上传图片获取 URL
       const uploadResult = await uploadApi.uploadImages(formData.images);
       if (!uploadResult || !uploadResult.length) {
         throw new Error('图片上传失败');
       }
-      
+
+      // 3. 构造完整的提交数据
       const submitData: QuestionnaireData = {
         name: formData.name,
         phone: formData.phone,
         wechat: formData.wechat,
         birth_date: formData.birth_date,
-        zodiac: formData.zodiac, // 注意字段名转换
+        zodiac: formData.zodiac,
         mbti: formData.mbti.toUpperCase(),
         location: formData.location,
         gender: formData.gender as 'male' | 'female',
         orientation: formData.orientation as 'straight' | 'gay' | 'bisexual',
         occupation: formData.occupation,
         self_intro: formData.self_intro,
-        images: uploadResult.map(result => result.url)
+        images: uploadResult.map(result => result.url)  // 使用上传后的图片 URL
       };
+
+      // 4. 一次性提交到问卷接口
       const result = await questionnaireApi.submit(submitData);
       if (!result.success) {
         throw new Error(result.error);
       }
-      setIsSuccessModalOpen(true); // 提交成功后显示弹窗
+      setIsSuccessModalOpen(true);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '提交失败，请重试';
       setSubmitError(errorMessage);
@@ -356,7 +359,7 @@ export default function QuestionnairePage() {
               className={styles.input}
               value={formData.occupation}
               onChange={handleChange}
-              placeholder="请输入你的职业��专业"
+              placeholder="请输入你的职业/专业"
             />
             {errors.occupation && <span className={styles.error}>{errors.occupation}</span>}
           </div>
