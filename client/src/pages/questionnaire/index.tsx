@@ -123,11 +123,13 @@ export default function QuestionnairePage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('表单提交开始');
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
+      console.log('开始验证表单');
       // 1. 验证字段
       const newErrors: FormErrors = {};
       Object.keys(formData).forEach(key => {
@@ -177,6 +179,7 @@ export default function QuestionnairePage() {
       }
       setIsSuccessModalOpen(true);
     } catch (error) {
+      console.log('捕获到错误：', error);
       const errorMessage = error instanceof Error ? error.message : '提交失败，请重试';
       setSubmitError(errorMessage);
       setErrors(prev => ({
