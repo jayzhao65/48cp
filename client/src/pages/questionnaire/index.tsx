@@ -129,6 +129,11 @@ export default function QuestionnairePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 添加测试日志
+    window.alert('开始提交表单');
+    console.log('表单数据:', formData);
+    
     setIsSubmitting(true);
     setSubmitError(null);
 
