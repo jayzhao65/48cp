@@ -130,9 +130,11 @@ export default function QuestionnairePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 添加测试日志
     window.alert('开始提交表单');
-    console.log('表单数据:', formData);
+    
+    if (typeof console !== 'undefined') {
+      console.log('表单数据:', formData);
+    }
     
     setIsSubmitting(true);
     setSubmitError(null);
@@ -152,7 +154,11 @@ export default function QuestionnairePage() {
       }
 
       // 2. 先上传图片获取 URL
-      console.log('准备上传的图片：', formData.images);
+      window.alert('准备上传图片');
+      if (typeof console !== 'undefined') {
+        console.log('准备上传的图片：', formData.images);
+      }
+      
       const uploadResult = await uploadApi.uploadImages(formData.images);
       console.log('上传结果：', uploadResult);
       
