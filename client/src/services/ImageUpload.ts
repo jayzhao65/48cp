@@ -1,9 +1,6 @@
 // src/services/upload.ts
 import { apiClient } from './api';
 
-// 可以定义一个基础 URL
-const API_BASE_URL = 'http://8.218.98.220/api';
-
 export const uploadApi = {
   // 上传单张图片
   uploadImage: async (file: File) => {
