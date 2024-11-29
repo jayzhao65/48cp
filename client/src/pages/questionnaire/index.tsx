@@ -123,13 +123,27 @@ export default function QuestionnairePage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('表单提交开始');
     e.preventDefault();
+    
+    // 添加立即可见的 UI 提示
+    alert('开始提交表单');
+    console.log('提交按钮被点击');
+
+    // 测试 API 连接
+    try {
+      const testResponse = await fetch('/api/health-check');
+      console.log('API 连接状态:', testResponse.ok);
+    } catch (error) {
+      console.error('API 连接失败:', error);
+      alert('无法连接到服务器，请检查网络连接');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      console.log('开始验证表单');
+      console.log('表单提交开始');
       // 1. 验证字段
       const newErrors: FormErrors = {};
       Object.keys(formData).forEach(key => {
