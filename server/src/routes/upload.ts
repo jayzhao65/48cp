@@ -73,32 +73,32 @@ const router = express.Router();
 // upload.single('image') 是中间件，表示接受一个名为 'image' 的单个文件
 // uploadImage 是处理上传的控制器函数
 router.post('/upload', (req, res, next) => {
-  console.log('=== Upload Request Start ===');
+  // 1. 打印请求信息
+  console.log('=============== 上传请求开始 ===============');
+  console.log('请求头:', req.headers);
+  console.log('请求体:', req.body);
   
-  // 使用回调方式处理 multer 错误
+  // 2. 确保上传目录存在
+  if (!fs.existsSync(uploadDir)) {
+    console.log('创建上传目录:', uploadDir);
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  // 3. 使用 multer 处理上传
   upload.single('image')(req, res, (err) => {
     if (err) {
-      console.error('Multer Error:', err);
-      return res.status(500).json({
-        success: false,
-        error: err.message || '文件上传失败'
+      console.error('Multer 错误:', {
+        错误信息: err.message,
+        错误代码: err.code,
+        字段名: err.field
       });
-    }
-
-    // 检查文件是否存在
-    if (!req.file) {
-      console.error('No file uploaded');
+      
       return res.status(400).json({
         success: false,
-        error: '请选择要上传的文件'
+        error: '文件上传失败，请确保：\n1. 使用 image 作为字段名\n2. 文件大小不超过限制\n3. 文件类型为图片'
       });
     }
 
-    console.log('File received:', {
-      filename: req.file.filename,
-      mimetype: req.file.mimetype,
-      size: req.file.size
-    });
 
     // 确保上传目录存在
     const uploadDir = path.join(__dirname, '../../uploads');

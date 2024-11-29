@@ -7,10 +7,14 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('image', file);
 
+    // 添加调试日志
+    console.log('Using baseURL:', apiClient.defaults.baseURL);
+
     try {
       const response = await apiClient.post('/upload', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          // 重要：删除 Content-Type，让 axios 自动设置正确的 multipart/form-data
+          // 'Content-Type': 'multipart/form-data' -- 删除这行
         },
       });
       return response.data;
