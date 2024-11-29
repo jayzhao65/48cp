@@ -40,11 +40,7 @@ export default function ImageUpload({
 
   // 处理文件选择
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('handleFileSelect triggered');
-    console.log('Files:', event.target.files);
-    
     const files = Array.from(event.target.files || []);
-    console.log('Files array:', files);
     
     // 检查文件数量
     if (value.length + files.length > maxFiles) {
@@ -59,50 +55,30 @@ export default function ImageUpload({
     }
 
     try {
-      console.log('Starting upload...');
-      const formData = new FormData();
-      validFiles.forEach(file => {
+      // 一次处理一个文件
+      for (const file of validFiles) {
+        const formData = new FormData();
         formData.append('image', file);
-      });
 
-      console.log('=== 开始打印 FormData ===');
-      for (let [key, value] of formData.entries()) {
-        if (value instanceof File) {
-          console.log('FormData entry:', key, {
-            name: value.name,
-            size: value.size,
-            type: value.type
-          });
-        } else {
-          console.log('FormData entry:', key, value);
+        const response = await fetch('http://8.218.98.220/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Server response:', errorText);
+          throw new Error('上传失败');
         }
+
+        const result = await response.json();
+        
+        // 为每个成功上传的文件创建预览
+        const previewUrl = URL.createObjectURL(file);
+        setPreviews(prev => [...prev, previewUrl]);
+        onChange?.([...value, file]);
       }
-      console.log('=== FormData 打印结束 ===');
-
-      console.log('Sending request to:', 'http://8.218.98.220/api/upload');
-      const response = await fetch('http://8.218.98.220/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      console.log('Response received:', {
-        status: response.status,
-        statusText: response.statusText
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text(); // 先获取原始响应文本
-        console.error('Server response:', errorText); // 打印原始响应
-        const errorData = errorText ? JSON.parse(errorText) : { error: '上传失败' };
-        throw new Error(errorData.error || '上传失败');
-      }
-
-      const result = await response.json();
       
-      // 创建预览URL
-      const newPreviews = validFiles.map(file => URL.createObjectURL(file));
-      setPreviews(prev => [...prev, ...newPreviews]);
-      onChange?.([...value, ...validFiles]);
       setError('');
     } catch (error) {
       console.error('Upload error details:', error);
