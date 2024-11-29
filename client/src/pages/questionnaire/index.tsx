@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
 import styles from './index.module.css';
 import ImageUpload from './components/ImageUpload';
@@ -27,6 +27,11 @@ interface FormErrors {
 }
 
 export default function QuestionnairePage() {
+  useEffect(() => {
+    // 使用 alert 来确保一定能看到
+    window.alert('测试：问卷组件已加载');
+  }, []);
+
   const [formData, setFormData] = useState<FormData>({
     name: '',
     phone: '',
@@ -124,26 +129,10 @@ export default function QuestionnairePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // 添加立即可见的 UI 提示
-    alert('开始提交表单');
-    console.log('提交按钮被点击');
-
-    // 测试 API 连接
-    try {
-      const testResponse = await fetch('/api/health-check');
-      console.log('API 连接状态:', testResponse.ok);
-    } catch (error) {
-      console.error('API 连接失败:', error);
-      alert('无法连接到服务器，请检查网络连接');
-      return;
-    }
-
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      console.log('表单提交开始');
       // 1. 验证字段
       const newErrors: FormErrors = {};
       Object.keys(formData).forEach(key => {
@@ -193,7 +182,6 @@ export default function QuestionnairePage() {
       }
       setIsSuccessModalOpen(true);
     } catch (error) {
-      console.log('捕获到错误：', error);
       const errorMessage = error instanceof Error ? error.message : '提交失败，请重试';
       setSubmitError(errorMessage);
       setErrors(prev => ({
