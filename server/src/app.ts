@@ -34,6 +34,16 @@ console.log('CORS origins:', process.env.NODE_ENV === 'production'
   ? ['http://8.218.98.220', 'http://8.218.98.220:3001']
   : ['http://localhost:5173', 'http://localhost:3001']);
 
+// 将日志中间件移到 CORS 之前
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log(`\n====== ${req.method} ${req.url} ======`);
+  console.log('请求头:', JSON.stringify(req.headers, null, 2));
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('请求体:', JSON.stringify(req.body, null, 2));
+  }
+  next();
+});
+
 // 简化 CORS 配置，允许所有来源访问
 app.use(cors({
   origin: '*',  // 允许所有来源访问
@@ -41,16 +51,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false  // 改为 false，因为 credentials 模式下不能用 '*'
 }));
-
-// 添加在 app.use(cors()) 之后，路由之前
-app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log('Request Headers:', req.headers);
-  if (req.body) console.log('Request Body:', req.body);
-  if (req.files) console.log('Request Files:', req.files);
-  if (req.file) console.log('Request File:', req.file);
-  next();
-});
 
 // 启用 JSON 解析，允许服务器解析请求体中的 JSON 数据
 app.use(express.json());

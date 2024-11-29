@@ -135,6 +135,7 @@ router.post('/upload', (req, res, next) => {
       url: imageUrl
     });
   } catch (error) {
+    console.error('上传处理错误:', error);
     next(error);
   }
 });
