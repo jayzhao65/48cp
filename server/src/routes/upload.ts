@@ -70,7 +70,6 @@ const router = express.Router();
 router.post('/upload', (req, res, next) => {
   console.log('=============== 上传请求开始 ===============');
   
-  // 使用 multer 处理上传
   upload.single('image')(req, res, (err) => {
     if (err) {
       console.error('Multer 错误:', err);
@@ -80,26 +79,18 @@ router.post('/upload', (req, res, next) => {
       });
     }
 
-    // 调用上传控制器
+    // 调用上传控制器处理请求
     uploadImage(req, res).catch(error => {
       console.error('Upload Error:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message || '文件上传失败'
-      });
+      // 确保之前没有发送过响应
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          error: error.message || '文件上传失败'
+        });
+      }
     });
   });
-
-  // 这里又尝试发送一次响应
-  try {
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file?.filename}`;
-    res.json({
-      success: true,
-      url: imageUrl
-    });
-  } catch (error) {
-    next(error);
-  }
 });
 
 export default router;
