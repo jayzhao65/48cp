@@ -1,25 +1,29 @@
-// 导入 express 框架，这是一个 Node.js 的 Web 应用框架
-import express from 'express';
+// 文件作用：处理问卷相关的路由配置
+// 主要功能：
+// 1. 提交问卷
+// 2. 获取问卷列表
+// 3. 获取单个问卷详情
+// 4. 生成性格报告
+// 5. 匹配用户
+// 与其他文件关系：
+// - 使用 ../controllers/questionnaire 中的控制器函数
+// - 被 app.ts 引用并注册到 /api 路径下
 
-// 从问卷控制器文件中导入 submitQuestionnaire 函数
-// 这个函数将处理提交问卷的具体逻辑
+import express from 'express';
 import { 
     submitQuestionnaire, 
     getQuestionnaires,
     getQuestionnaireById,
     generateReport,
     matchUsers
-  } from '../controllers/questionnaire';
-// 创建一个新的路由实例
-// router 对象可以让我们定义不同的 API 路由
+} from '../controllers/questionnaire';
+
 const router = express.Router();
 
-// 定义一个 POST 请求路由
-// 当客户端向 '/questionnaire' 发送 POST 请求时
-// 会调用 submitQuestionnaire 函数来处理这个请求
+// POST /api/questionnaire - 提交新问卷
 router.post('/questionnaire', submitQuestionnaire);
 
-// 添加获取所有问卷的路由
+// GET /api/questionnaire - 获取所有问卷列表
 router.get('/questionnaire', async (req, res, next) => {
   try {
     await getQuestionnaires(req, res);
@@ -28,6 +32,7 @@ router.get('/questionnaire', async (req, res, next) => {
   }
 });
 
+// GET /api/questionnaire/:id - 获取单个问卷详情
 router.get('/questionnaire/:id', async (req, res, next) => {
   try {
     await getQuestionnaireById(req, res);
@@ -36,6 +41,7 @@ router.get('/questionnaire/:id', async (req, res, next) => {
   }
 });
 
+// POST /api/questionnaire/:id/report - 生成性格报告
 router.post('/questionnaire/:id/report', async (req, res, next) => {
   try {
     await generateReport(req, res);
@@ -44,6 +50,7 @@ router.post('/questionnaire/:id/report', async (req, res, next) => {
   }
 });
 
+// POST /api/questionnaire/:id/match - 匹配用户
 router.post('/questionnaire/:id/match', async (req, res) => {
   try {
     await matchUsers(req, res);

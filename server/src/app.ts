@@ -1,5 +1,13 @@
-// 导入必要的包和模块
-// express 是一个 Node.js Web 应用框架，用于创建 Web 服务器
+// 文件作用：后端应用程序的入口文件
+// 主要功能：
+// 1. 创建Express应用实例
+// 2. 配置中间件（CORS、日志、错误处理等）
+// 3. 设置路由
+// 4. 启动服务器
+// 与其他文件关系：
+// - 使用 config/database.ts 连接数据库
+// - 使用 routes/ 下的路由模块处理请求
+// - 被 package.json 中的启动脚本调用
 import express, { Request, Response, NextFunction } from 'express';
 // cors 是一个中间件，用于处理跨域资源共享，允许其他域名的前端访问这个服务器
 import cors from 'cors';
@@ -28,13 +36,7 @@ if (!fs.existsSync(uploadDir)) {
 // 调用数据库连接函数，连接到 MongoDB 数据库
 connectDB();
 
-// 添加在 CORS 配置前
-console.log('Current NODE_ENV:', process.env.NODE_ENV);
-console.log('CORS origins:', process.env.NODE_ENV === 'production'
-  ? ['http://8.218.98.220', 'http://8.218.98.220:3001']
-  : ['http://localhost:5173', 'http://localhost:3001']);
-
-// 将日志中间件移到 CORS 之前
+// 日志中间件
 app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`\n====== ${req.method} ${req.url} ======`);
   console.log('请求头:', JSON.stringify(req.headers, null, 2));
@@ -44,7 +46,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// 简化 CORS 配置，允许所有来源访问
+// 配置CORS中间件，允许跨域请求
 app.use(cors({
   origin: '*',  // 允许所有来源访问
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
