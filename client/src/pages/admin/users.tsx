@@ -59,6 +59,7 @@ export default function Users() {
   const [nestedDrawerVisible, setNestedDrawerVisible] = useState(false);
   const [nestedUser, setNestedUser] = useState<UserData | null>(null);
   const [nestedGeneratingReport, setNestedGeneratingReport] = useState(false);
+  const [originalUsers, setOriginalUsers] = useState<UserData[]>([]);
 
   // 定义表格的列配置
   const columns: ColumnsType<UserData> = [
@@ -179,7 +180,7 @@ export default function Users() {
       if (result.success) {
         message.success('报告生成成功');
         setSelectedUser(result.data);
-        fetchUsers();
+        fetchAllUsers();
       }
     } catch (error) {
       console.error('生成报告失败:', error);
@@ -198,7 +199,7 @@ export default function Users() {
       if (result.success) {
         message.success('匹配成功');
         setSelectedUser(result.data);
-        fetchUsers();
+        fetchAllUsers();
       }
     } catch (error) {
       console.error('匹配失败:', error);
@@ -208,50 +209,13 @@ export default function Users() {
     }
   };
 
-  // 组件加载时获取用户列表
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  // 获取用户列表的函数
-  const fetchUsers = async () => {
+  // 修改 fetchUsers 函数，将其拆分为两个函数
+  const fetchAllUsers = async () => {
     try {
       const response = await questionnaireApi.getAll();
       if (response && response.success && Array.isArray(response.data)) {
-        let filteredData = response.data;
-
-        // 根据状态筛选（多选）
-        if (statusFilter.length > 0) {
-          filteredData = filteredData.filter((user: UserData) => statusFilter.includes(user.status));
-        }
-
-        // 根据性别筛选（多选）
-        if (genderFilter.length > 0) {
-          filteredData = filteredData.filter((user: UserData) => genderFilter.includes(user.gender));
-        }
-
-        // 根��性取向筛选（多选）
-        if (orientationFilter.length > 0) {
-          filteredData = filteredData.filter((user: UserData) => orientationFilter.includes(user.orientation));
-        }
-
-        // 根据搜索关键词筛选
-        if (searchText) {
-          const keyword = searchText.toLowerCase();
-          filteredData = filteredData.filter((user: UserData) => 
-            user.name.toLowerCase().includes(keyword) ||
-            user.phone.includes(keyword) ||
-            user._id.toLowerCase().includes(keyword) ||
-            user.location.toLowerCase().includes(keyword) ||
-            user.occupation.toLowerCase().includes(keyword) ||
-            user.wechat.toLowerCase().includes(keyword)
-          );
-        }
-
-        setUsers(filteredData);
-      } else {
-        console.error('响应格式不正确:', response);
-        message.error('数据格式错误');
+        setOriginalUsers(response.data);
+        applyFilters(response.data);
       }
     } catch (error) {
       console.error('获取用户列表失败:', error);
@@ -261,9 +225,47 @@ export default function Users() {
     }
   };
 
-  // 监听筛选条件变化
+  const applyFilters = (data: UserData[]) => {
+    let filteredData = [...data];
+
+    // 应用所有筛选条件
+    if (statusFilter.length > 0) {
+      filteredData = filteredData.filter((user) => statusFilter.includes(user.status));
+    }
+
+    if (genderFilter.length > 0) {
+      filteredData = filteredData.filter((user) => genderFilter.includes(user.gender));
+    }
+
+    if (orientationFilter.length > 0) {
+      filteredData = filteredData.filter((user) => orientationFilter.includes(user.orientation));
+    }
+
+    if (searchText) {
+      const keyword = searchText.toLowerCase();
+      filteredData = filteredData.filter((user) => 
+        user.name.toLowerCase().includes(keyword) ||
+        user.phone.includes(keyword) ||
+        user._id.toLowerCase().includes(keyword) ||
+        user.location.toLowerCase().includes(keyword) ||
+        user.occupation.toLowerCase().includes(keyword) ||
+        user.wechat.toLowerCase().includes(keyword)
+      );
+    }
+
+    setUsers(filteredData);
+  };
+
+  // 修改 useEffect
   useEffect(() => {
-    fetchUsers();
+    fetchAllUsers();
+  }, []); // 只在组件挂载时获取所有用户
+
+  // 修改筛选条件的 useEffect
+  useEffect(() => {
+    if (originalUsers.length > 0) {
+      applyFilters(originalUsers);
+    }
   }, [statusFilter, genderFilter, orientationFilter, searchText]);
 
   // 修改处理函数以支持多选
@@ -297,7 +299,7 @@ export default function Users() {
       if (result.success) {
         message.success('报告生成成功');
         setNestedUser(result.data);
-        fetchUsers(); // 更新用户列表
+        fetchAllUsers(); // 更新用户列表
       }
     } catch (error) {
       console.error('生成报告失败:', error);
@@ -413,7 +415,11 @@ export default function Users() {
             ) : (
               <MatchingSection
                 currentUser={selectedUser}
-                allUsers={users}
+                allUsers={originalUsers.filter(u => 
+                  u._id !== selectedUser._id && 
+                  u.status !== 'matched' && 
+                  !u.matched_with
+                )}
                 onViewDetails={(user) => {
                   setNestedUser(user);
                   setNestedDrawerVisible(true);
