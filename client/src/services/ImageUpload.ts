@@ -29,6 +29,7 @@ export const uploadApi = {
         },
         timeout: 60000,
       });
+      console.log('收到的响应数据:', response.data);
       return response.data;
     } catch (error) {
       console.error('Upload error:', error);
