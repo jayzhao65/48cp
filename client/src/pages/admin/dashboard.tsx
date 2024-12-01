@@ -119,7 +119,7 @@ export default function Dashboard() {
                 <Statistic title="已提交" value={stats.statusDistribution.submitted} />
               </Col>
               <Col span={8}>
-                <Statistic title="已举报" value={stats.statusDistribution.reported} />
+                <Statistic title="已报告" value={stats.statusDistribution.reported} />
               </Col>
               <Col span={8}>
                 <Statistic title="已匹配" value={stats.statusDistribution.matched} />

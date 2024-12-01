@@ -12,10 +12,15 @@ function App() {
   return (
     <ConfigProvider
       theme={{
-        algorithm: [theme.defaultAlgorithm], // 只使用亮色主题
+        algorithm: [theme.defaultAlgorithm],
         token: {
           // 可以在这里自定义主题颜色
           colorPrimary: '#1890ff',
+          borderRadius: 8,
+          fontSize: 14,
+          marginXS: 8,
+          marginSM: 12,
+          marginMD: 16,
         },
       }}
     >

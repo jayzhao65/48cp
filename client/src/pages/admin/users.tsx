@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Key } from 'react';
 import { Table, Tag, Space, Button, Drawer, message, Select, Image, Descriptions, Input } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { questionnaireApi } from '../../services/questionnaire';
 import commonStyles from './common.module.css';
+import { MatchingSection } from './components/MatchingSection';
+import { UserDetailContent } from './components/UserDetailContent';
+import { PersonalityReport } from './components/PersonalityReport';
 
 
 // 定义用户数据的类型接口，描述了用户的所有属性
@@ -44,12 +47,18 @@ export default function Users() {
   const [drawerVisible, setDrawerVisible] = useState(false); // 抽屉组件是否可见
   const [generatingReport, setGeneratingReport] = useState(false); // 是否正在生成报告
   const [matchLoading, setMatchLoading] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0
   });
+  const [searchText, setSearchText] = useState('');
+  const [genderFilter, setGenderFilter] = useState<string[]>([]);
+  const [orientationFilter, setOrientationFilter] = useState<string[]>([]);
+  const [nestedDrawerVisible, setNestedDrawerVisible] = useState(false);
+  const [nestedUser, setNestedUser] = useState<UserData | null>(null);
+  const [nestedGeneratingReport, setNestedGeneratingReport] = useState(false);
 
   // 定义表格的列配置
   const columns: ColumnsType<UserData> = [
@@ -71,11 +80,11 @@ export default function Users() {
       dataIndex: 'gender',
       key: 'gender',
       width: 80,
-      render: (gender: string) => (gender === 'male' ? '男' : '女'),
-      filters: [
-        { text: '男', value: 'male' },
-        { text: '女', value: 'female' },
-      ],
+      render: (gender: string) => (
+        <span className={`${commonStyles.genderTag} ${gender === 'male' ? commonStyles.genderMale : commonStyles.genderFemale}`}>
+          {gender === 'male' ? '男' : '女'}
+        </span>
+      ),
     },
     {
       title: '所在地',
@@ -88,11 +97,19 @@ export default function Users() {
       dataIndex: 'orientation',
       key: 'orientation',
       width: 100,
-      render: (orientation: string) => ({
-        straight: '异性恋',
-        gay: '同性恋',
-        bisexual: '双性恋'
-      }[orientation]),
+      render: (orientation: string) => {
+        const config = {
+          straight: { text: '异性恋', className: commonStyles.orientationStraight },
+          gay: { text: '同性恋', className: commonStyles.orientationGay },
+          bisexual: { text: '双性恋', className: commonStyles.orientationBisexual }
+        };
+        const orientationConfig = config[orientation as keyof typeof config];
+        return (
+          <span className={`${commonStyles.orientationTag} ${orientationConfig.className}`}>
+            {orientationConfig.text}
+          </span>
+        );
+      },
     },
     {
       title: '职业',
@@ -107,13 +124,13 @@ export default function Users() {
       width: 100,
       render: (status: string) => {
         const statusConfig = {
-          submitted: { className: commonStyles.taskGenerated, text: '已提交' },
-          reported: { className: commonStyles.taskPending, text: '已报告' },
-          matched: { className: commonStyles.taskGenerated, text: '已匹配' }
+          submitted: { className: commonStyles.statusSubmitted, text: '已提交' },
+          reported: { className: commonStyles.statusReported, text: '已报告' },
+          matched: { className: commonStyles.statusMatched, text: '已匹配' }
         };
         const config = statusConfig[status as keyof typeof statusConfig];
         return (
-          <span className={`${commonStyles.taskTag} ${config.className}`}>
+          <span className={`${commonStyles.statusTag} ${config.className}`}>
             {config.text}
           </span>
         );
@@ -123,6 +140,7 @@ export default function Users() {
         { text: '已报告', value: 'reported' },
         { text: '已匹配', value: 'matched' },
       ],
+      onFilter: (value: boolean | Key, record: UserData) => record.status === String(value),
     },
     {
       title: '年龄',
@@ -199,11 +217,38 @@ export default function Users() {
   const fetchUsers = async () => {
     try {
       const response = await questionnaireApi.getAll();
-      console.log('完整的响应:', response); // 打印完整响应
-      
       if (response && response.success && Array.isArray(response.data)) {
-        console.log('设置用户数据:', response.data);
-        setUsers(response.data);
+        let filteredData = response.data;
+
+        // 根据状态筛选（多选）
+        if (statusFilter.length > 0) {
+          filteredData = filteredData.filter((user: UserData) => statusFilter.includes(user.status));
+        }
+
+        // 根据性别筛选（多选）
+        if (genderFilter.length > 0) {
+          filteredData = filteredData.filter((user: UserData) => genderFilter.includes(user.gender));
+        }
+
+        // 根��性取向筛选（多选）
+        if (orientationFilter.length > 0) {
+          filteredData = filteredData.filter((user: UserData) => orientationFilter.includes(user.orientation));
+        }
+
+        // 根据搜索关键词筛选
+        if (searchText) {
+          const keyword = searchText.toLowerCase();
+          filteredData = filteredData.filter((user: UserData) => 
+            user.name.toLowerCase().includes(keyword) ||
+            user.phone.includes(keyword) ||
+            user._id.toLowerCase().includes(keyword) ||
+            user.location.toLowerCase().includes(keyword) ||
+            user.occupation.toLowerCase().includes(keyword) ||
+            user.wechat.toLowerCase().includes(keyword)
+          );
+        }
+
+        setUsers(filteredData);
       } else {
         console.error('响应格式不正确:', response);
         message.error('数据格式错误');
@@ -216,18 +261,50 @@ export default function Users() {
     }
   };
 
-  const handleStatusChange = (value: string | null) => {
+  // 监听筛选条件变化
+  useEffect(() => {
+    fetchUsers();
+  }, [statusFilter, genderFilter, orientationFilter, searchText]);
+
+  // 修改处理函数以支持多选
+  const handleStatusChange = (value: string[]) => {
     setStatusFilter(value);
-    // TODO: Implement filtering logic based on status
   };
 
+  const handleGenderChange = (value: string[]) => {
+    setGenderFilter(value);
+  };
+
+  const handleOrientationChange = (value: string[]) => {
+    setOrientationFilter(value);
+  };
+
+  // 修改搜索处理函数
   const handleSearch = (value: string) => {
-    // TODO: Implement search logic
-    console.log('Searching for:', value);
+    setSearchText(value);
   };
 
   const handleTableChange = (newPagination: any) => {
     setPagination(newPagination);
+  };
+
+  // 添加新的处理函数
+  const handleNestedGenerateReport = async () => {
+    if (!nestedUser) return;
+    setNestedGeneratingReport(true);
+    try {
+      const result = await questionnaireApi.generateReport(nestedUser._id);
+      if (result.success) {
+        message.success('报告生成成功');
+        setNestedUser(result.data);
+        fetchUsers(); // 更新用户列表
+      }
+    } catch (error) {
+      console.error('生成报告失败:', error);
+      message.error('报告生成失败');
+    } finally {
+      setNestedGeneratingReport(false);
+    }
   };
 
   // 渲染页面内容
@@ -244,19 +321,45 @@ export default function Users() {
         <div style={{ marginBottom: 16 }}>
           <Space>
             <Input.Search
-              placeholder="搜索用户名或手机号"
+              placeholder="搜索用户编号/姓名/手机号/微信/所在地/职业"
               onSearch={handleSearch}
-              style={{ width: 300 }}
+              onChange={(e) => handleSearch(e.target.value)}
+              style={{ width: 400 }}
             />
             <Select
-              placeholder="审核状态"
+              mode="multiple"  // 启用多选模式
+              placeholder="性别筛选"
+              style={{ width: 120 }}
+              onChange={handleGenderChange}
+              allowClear
+              maxTagCount="responsive"  // 自动处理多选标签的显示
+            >
+              <Select.Option value="male">男</Select.Option>
+              <Select.Option value="female">女</Select.Option>
+            </Select>
+            <Select
+              mode="multiple"
+              placeholder="性取向筛选"
+              style={{ width: 120 }}
+              onChange={handleOrientationChange}
+              allowClear
+              maxTagCount="responsive"
+            >
+              <Select.Option value="straight">异性恋</Select.Option>
+              <Select.Option value="gay">同性恋</Select.Option>
+              <Select.Option value="bisexual">双性恋</Select.Option>
+            </Select>
+            <Select
+              mode="multiple"
+              placeholder="状态筛选"
               style={{ width: 120 }}
               onChange={handleStatusChange}
               allowClear
+              maxTagCount="responsive"
             >
-              <Select.Option value="pending">待审核</Select.Option>
-              <Select.Option value="approved">已通过</Select.Option>
-              <Select.Option value="rejected">已拒绝</Select.Option>
+              <Select.Option value="submitted">已提交</Select.Option>
+              <Select.Option value="reported">已报告</Select.Option>
+              <Select.Option value="matched">已匹配</Select.Option>
             </Select>
           </Space>
         </div>
@@ -273,7 +376,7 @@ export default function Users() {
 
       {/* 用户详情抽屉 */}
       <Drawer
-        title="用户详情"
+        title={selectedUser ? `${selectedUser.name}详情` : '用户详情'}
         placement="right"
         width={720}
         onClose={() => setDrawerVisible(false)}
@@ -281,150 +384,64 @@ export default function Users() {
       >
         {selectedUser && (
           <div className={commonStyles.drawerContent}>
-            {/* 基本信息部分 */}
-            <section className={commonStyles.section}>
-              <h3 className={commonStyles.sectionTitle}>基本信息</h3>
-              <Descriptions column={2}>
-                <Descriptions.Item label="姓名">{selectedUser.name}</Descriptions.Item>
-                <Descriptions.Item label="性别">
-                  {selectedUser.gender === 'male' ? '男' : '女'}
-                </Descriptions.Item>
-                <Descriptions.Item label="手机">{selectedUser.phone}</Descriptions.Item>
-                <Descriptions.Item label="微信">{selectedUser.wechat}</Descriptions.Item>
-                <Descriptions.Item label="出生日期">{selectedUser.birth_date}</Descriptions.Item>
-                <Descriptions.Item label="星座">{selectedUser.zodiac}</Descriptions.Item>
-                <Descriptions.Item label="MBTI">{selectedUser.mbti}</Descriptions.Item>
-                <Descriptions.Item label="所在地">{selectedUser.location}</Descriptions.Item>
-                <Descriptions.Item label="职业">{selectedUser.occupation}</Descriptions.Item>
-                <Descriptions.Item label="性取向">
-                  {{
-                    straight: '异性恋',
-                    gay: '同性恋',
-                    bisexual: '双性恋'
-                  }[selectedUser.orientation]}
-                </Descriptions.Item>
-                <Descriptions.Item label="年龄">{selectedUser.age}岁</Descriptions.Item>
-              </Descriptions>
-            </section>
+            <UserDetailContent user={selectedUser} />
+            <PersonalityReport
+              user={selectedUser}
+              onGenerate={handleGenerateReport}
+              loading={generatingReport}
+            />
 
-            {/* 自我介绍部分 */}
-            <section className={commonStyles.section}>
-              <h3 className={commonStyles.sectionTitle}>自我介绍</h3>
-              <p>{selectedUser.self_intro}</p>
-            </section>
-
-            {/* 照片展示部分 */}
-            <section className={commonStyles.section}>
-              <h3 className={commonStyles.sectionTitle}>照片</h3>
-              <div className={commonStyles.imageGrid}>
-                {selectedUser.images.map((url, index) => (
-                  <Image
-                    key={index}
-                    src={url}
-                    width={120}
-                    height={120}
-                    style={{ objectFit: 'cover' }}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {/* 性格报告部分 */}
-            <section className={commonStyles.section}>
-              <div className={commonStyles.sectionHeader}>
-                <h3 className={commonStyles.sectionTitle}>性格报告</h3>
-                <Button
-                  type="primary"
-                  onClick={handleGenerateReport}
-                  loading={generatingReport}
-                  disabled={generatingReport}
-                >
-                  {selectedUser.personality_report?.content?.raw_response ? '重新生成报告' : '生成报告'}
-                </Button>
-              </div>
-
-              {/* 如果存在性格报告则显示报告内容 */}
-              {selectedUser.personality_report?.content?.raw_response && (
-                <div className={commonStyles.reportSection}>
-                  <div className={commonStyles.reportMeta}>
-                    <span>生成时间：{new Date(selectedUser.personality_report.generated_at).toLocaleString()}</span>
-                    <span>生成次数：{selectedUser.personality_report.generation_count}</span>
-                  </div>
-                  <div className={commonStyles.reportContent}>
-                    <div style={{ whiteSpace: 'pre-wrap' }}>
-                      {selectedUser.personality_report.content.raw_response}
-                    </div>
-                  </div>
+            {/* 匹配 CP 部分 */}
+            {selectedUser.matched_with ? (
+              <section className={commonStyles.section}>
+                <div className={commonStyles.sectionHeader}>
+                  <h3 className={commonStyles.sectionTitle}>匹配 CP</h3>
                 </div>
-              )}
-            </section>
-
-            {/* 添加匹配 CP 部分 */}
-            <section className={commonStyles.section}>
-              <div className={commonStyles.sectionHeader}>
-                <h3 className={commonStyles.sectionTitle}>匹配 CP</h3>
-              </div>
-              
-              {selectedUser.matched_with ? (
-                // 如果已经匹配，显示匹配信息
                 <div className={commonStyles.matchInfo}>
                   <p>已匹配用户：{users.find(u => u._id === selectedUser.matched_with)?.name}</p>
                   <p>匹配时间：{new Date(selectedUser.matched_at!).toLocaleString()}</p>
                   <Button 
                     type="primary" 
                     danger
-                    onClick={() => handleMatch('')} // 传空字符串表示取消匹配
+                    onClick={() => handleMatch('')}
+                    loading={matchLoading}
                   >
                     取消匹配
                   </Button>
                 </div>
-              ) : (
-                // 如果未匹配，显示用户选择框
-                <div className={commonStyles.matchSelector}>
-                  <Select
-                    showSearch
-                    style={{ width: '100%' }}
-                    placeholder="选择要匹配的用户"
-                    optionFilterProp="children"
-                    loading={matchLoading}
-                    onChange={handleMatch}
-                    filterOption={(input, option) =>
-                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                    }
-                    options={users
-                      .filter(u => {
-                        // 基本条件：不能是自己且未被匹配
-                        const basicCondition = u._id !== selectedUser._id && !u.matched_with;
-                        
-                        // 根据性取向判断性别匹配条件
-                        let genderMatch = false;
-                        
-                        switch(selectedUser.orientation) {
-                          case 'straight':
-                            // 异性恋：只匹配异性且对方也是异性恋
-                            genderMatch = u.gender !== selectedUser.gender && u.orientation === 'straight';
-                            break;
-                          case 'gay':
-                            // 同性恋：只匹配同性且对方也是同性恋
-                            genderMatch = u.gender === selectedUser.gender && u.orientation === 'gay';
-                            break;
-                          case 'bisexual':
-                            // 双性恋：可以匹配异性恋的异性或同性恋的同性
-                            genderMatch = (u.gender !== selectedUser.gender && u.orientation === 'straight') || 
-                                        (u.gender === selectedUser.gender && u.orientation === 'gay');
-                            break;
-                        }
-                        
-                        return basicCondition && genderMatch;
-                      })
-                      .map(u => ({
-                        value: u._id,
-                        label: `${u.name} (${u.gender === 'male' ? '男' : '女'}, ${u.age || '未知'}岁, ${u.location})`
-                      }))}
-                  />
-                </div>
-              )}
-            </section>
+              </section>
+            ) : (
+              <MatchingSection
+                currentUser={selectedUser}
+                allUsers={users}
+                onViewDetails={(user) => {
+                  setNestedUser(user);
+                  setNestedDrawerVisible(true);
+                }}
+                onMatch={handleMatch}
+              />
+            )}
+          </div>
+        )}
+      </Drawer>
+
+      {/* 嵌套抽屉 */}
+      <Drawer
+        title={nestedUser ? `CP匹配 - ${nestedUser.name}详情` : '用户详情'}
+        placement="right"
+        width={720}
+        onClose={() => setNestedDrawerVisible(false)}
+        open={nestedDrawerVisible}
+        push={false}
+      >
+        {nestedUser && (
+          <div className={commonStyles.drawerContent}>
+            <UserDetailContent user={nestedUser} />
+            <PersonalityReport
+              user={nestedUser}
+              onGenerate={handleNestedGenerateReport}
+              loading={nestedGeneratingReport}
+            />
           </div>
         )}
       </Drawer>

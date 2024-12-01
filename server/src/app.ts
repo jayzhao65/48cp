@@ -36,16 +36,6 @@ if (!fs.existsSync(uploadDir)) {
 // 调用数据库连接函数，连接到 MongoDB 数据库
 connectDB();
 
-// 日志中间件
-app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log(`\n====== ${req.method} ${req.url} ======`);
-  console.log('请求头:', JSON.stringify(req.headers, null, 2));
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
-  }
-  next();
-});
-
 // 配置CORS中间件，允许跨域请求
 app.use(cors({
   origin: '*',  // 允许所有来源访问

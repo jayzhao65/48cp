@@ -12,6 +12,52 @@ import axios from 'axios';
 import { Couple } from '../models/couple';
 import { AIResponse } from '../types/api';
 
+// Add this function near the top of the file, after the imports
+const getImageContent = async (imageUrl: string): Promise<string> => {
+  try {
+    if (!imageUrl) {
+      throw new Error('Image URL is empty');
+    }
+
+    const response = await axios.get(imageUrl, { 
+      responseType: 'arraybuffer',
+      timeout: 60000,
+      headers: {
+        'Accept': 'image/*',
+        'User-Agent': 'Mozilla/5.0'
+      }
+    });
+
+    // 验证内容类型
+    const contentType = response.headers['content-type'];
+    if (!contentType?.startsWith('image/')) {
+      throw new Error(`Invalid content type: ${contentType}`);
+    }
+
+    // 强制转换为 JPEG 格式，并降低质量以减小大小
+    const sharp = require('sharp');
+    const processedImageBuffer = await sharp(response.data)
+      .jpeg({ quality: 80 }) // 转换为 JPEG 并设置质量
+      .resize(1024, 1024, { // 限制最大尺寸
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .toBuffer();
+
+    const base64 = processedImageBuffer.toString('base64');
+    const dataUrl = `data:image/jpeg;base64,${base64}`;
+
+    console.log(`Successfully processed image: ${imageUrl.substring(0, 50)}...`);
+    
+    return dataUrl;
+  } catch (error) {
+    console.error('Error processing image:', {
+      url: imageUrl.substring(0, 50) + '...',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    throw new Error('图片处理失败，请确保图片格式正确且大小在限制范围内');
+  }
+};
 
 // 导出一个异步函数，用于处理提交问卷的请求
 // async 表示这是一个异步函数，可以等待其他异步操作完成
@@ -21,8 +67,24 @@ export const submitQuestionnaire = async (req: Request, res: Response) => {
     // 当用户提交表单时，数据会存储在 req.body 中
     const questionnaireData = req.body;
     
-    // 使用问卷数据创建一个新的 Questionnaire 实例
-    // new Questionnaire() 会根据模型定义创建一个新的问卷对象
+    // 验证日期格式
+    if (!/^\d{4}-\d{2}$/.test(questionnaireData.birth_date)) {
+      return res.status(400).json({
+        success: false,
+        error: '出生日期格式必须为 YYYY-MM'
+      });
+    }
+
+    // 验证年龄限制
+    const [year, month] = questionnaireData.birth_date.split('-');
+    const birthDate = new Date(parseInt(year), parseInt(month) - 1);
+    if (birthDate > new Date('2006-12-31')) {
+      return res.status(400).json({
+        success: false,
+        error: '此活动仅对18岁以上开放'
+      });
+    }
+
     const questionnaire = new Questionnaire(questionnaireData);
 
     // 将问卷数据保存到数据库中
@@ -99,24 +161,68 @@ export const getQuestionnaireById = async (req: Request, res: Response) => {
         return res.status(404).json({ success: false, error: '问卷不存在' });
       }
 
-      // 构建提示词
-      const prompt = `
-        请根据以下用户信息生成一份性格分析报告：
-        姓名：${questionnaire.name}
-        性别：${questionnaire.gender === 'male' ? '男' : '女'}
-        年龄：${questionnaire.birth_date}
-        星座：${questionnaire.zodiac}
-        MBTI: ${questionnaire.mbti}
-        职业：${questionnaire.occupation}
-        自我介绍：${questionnaire.self_intro}
-        
-        请从以下几个方面进行分析：
-        1. 性格特点
-        2. 人际关系
-        3. 恋爱倾向
-        4. 职业发展
-        5. 建议与改进方向
-      `;
+      // 构建多模态消息
+      const textContent = {
+        type: "text" as const,
+        text: `
+          请根据以下用户信息和照片生成一份性格分析报告，首先先告诉我你收到了几张照片，然后描述每张图片中的内容，再开始生成以下信息：
+          姓名：${questionnaire.name}
+          性别：${questionnaire.gender === 'male' ? '男' : '女'}
+          年龄：${questionnaire.birth_date}
+          星座：${questionnaire.zodiac}
+          MBTI: ${questionnaire.mbti}
+          职业：${questionnaire.occupation}
+          自我介绍：${questionnaire.self_intro}
+          
+          请从以下几个方面进行分析：
+          1. 性格特点
+          2. 个人形象与气质
+          3. 人际关系
+          4. 恋爱倾向
+          5. 职业发展
+          6. 建议与改进方向
+        `
+      };
+
+      // 修改图片处理逻辑
+      const validImageContents = [];
+      if (questionnaire.images && questionnaire.images.length > 0) {
+        // 串行处理图片
+        for (const imageUrl of questionnaire.images) {
+          try {
+            const base64Url = await getImageContent(imageUrl);
+            validImageContents.push({
+              type: "image_url" as const,
+              image_url: {
+                url: base64Url
+              }
+            });
+            // 添加延迟以避免请求过快
+            await new Promise(resolve => setTimeout(resolve, 500));
+          } catch (error) {
+            console.error(`Failed to process image ${imageUrl}:`, error);
+          }
+        }
+      }
+
+      // 确保至少有一张图片被成功处理
+      if (questionnaire.images?.length > 0 && validImageContents.length === 0) {
+        throw new Error('无法处理任何上传的图片');
+      }
+
+      const messages = [
+        {
+          role: "user" as const,
+          content: [textContent, ...validImageContents]
+        }
+      ];
+
+      console.log('Prepared messages for API:', JSON.stringify({
+        messageCount: messages.length,
+        contentCount: messages[0].content.length,
+        imageCount: validImageContents.length,
+        firstImageLength: validImageContents[0]?.image_url.url.length
+      }, null, 2));
 
       // 检查 API key
       if (!process.env.OPENROUTER_API_KEY) {
@@ -128,29 +234,41 @@ export const getQuestionnaireById = async (req: Request, res: Response) => {
       }
 
       console.log('正在调用 OpenRouter API...');
-      const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-        model: "anthropic/claude-3-sonnet",
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        max_tokens: 2000,  // 限制响应长度
-        temperature: 0.7   // 添加温度参数
-      }, {
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'http://localhost:3001',
-          'X-Title': 'Personality Analysis App',
-          'Content-Type': 'application/json'
+
+
+
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: "anthropic/claude-3.5-sonnet",
+          messages: messages,
+          max_tokens: 2000,
+          temperature: 0.7
         },
-        timeout: 120000  // 增加到 120 秒
-      });
+        {
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            'HTTP-Referer': process.env.APP_URL || 'http://localhost:3001',
+            'X-Title': 'Personality Analysis App',
+            'Content-Type': 'application/json'
+          },
+          timeout: 120000
+        }
+      );
 
       console.log('OpenRouter API 响应成功');
-      // 解析 AI 响应
-      const aiResponse = (response.data as AIResponse).choices[0].message.content;
+      console.log('OpenRouter API 响应:', response.data); // 添加详细日志
+
+      // 增加响应数据的验证
+      if (!response.data || !response.data.choices || !Array.isArray(response.data.choices) || response.data.choices.length === 0) {
+        throw new Error('API 响应格式无效: ' + JSON.stringify(response.data));
+      }
+
+      // 安全地获取 AI 响应
+      const aiResponse = response.data.choices[0]?.message?.content;
+      if (!aiResponse) {
+        throw new Error('API 响应中没有找到有效的内容');
+      }
 
       // 更新问卷数据
       const report = {
@@ -168,12 +286,27 @@ export const getQuestionnaireById = async (req: Request, res: Response) => {
 
       res.json({ success: true, data: questionnaire });
     } catch (error: any) {
-      console.error('生成报告失败，详细错误:', error);
-      console.error('错误配置:', error.config);
-      if (error.response) {
-        console.error('API 响应错误:', error.response.data);
-      }
+      // 增强错误日志
+      console.error('生成报告失败，错误类型:', error.constructor.name);
+      console.error('错误信息:', error.message);
       
+      if (error.response) {
+        console.error('API 响应状态:', error.response.status);
+        console.error('API 响应头:', error.response.headers);
+        console.error('API 响应数据:', error.response.data);
+      }
+
+      if (error.config) {
+        console.error('请求配置:', {
+          url: error.config.url,
+          method: error.config.method,
+          headers: {
+            ...error.config.headers,
+            'Authorization': 'Bearer ' + process.env.OPENROUTER_API_KEY?.substring(0, 5) + '...' // 安全起见只显示部分
+          }
+        });
+      }
+
       let errorMessage = '生成报告失败';
       if (error.code === 'ECONNABORTED') {
         errorMessage = '生成报告超时，请重试 (服务器响应时间过长)';

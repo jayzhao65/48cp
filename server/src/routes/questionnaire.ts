@@ -9,7 +9,7 @@
 // - 使用 ../controllers/questionnaire 中的控制器函数
 // - 被 app.ts 引用并注册到 /api 路径下
 
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { 
     submitQuestionnaire, 
     getQuestionnaires,
@@ -20,16 +20,24 @@ import {
 
 const router = express.Router();
 
-// POST /api/questionnaire - 提交新问卷
-router.post('/questionnaire', submitQuestionnaire);
+// 使用 express.Handler 类型
+const handleSubmit: express.Handler = async (req, res, next) => {
+    try {
+        await submitQuestionnaire(req, res);
+    } catch (error) {
+        next(error);
+    }
+};
+
+router.post('/questionnaire', handleSubmit);
 
 // GET /api/questionnaire - 获取所有问卷列表
-router.get('/questionnaire', async (req, res, next) => {
-  try {
-    await getQuestionnaires(req, res);
-  } catch (error) {
-    next(error);
-  }
+router.get('/questionnaire', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await getQuestionnaires(req, res);
+    } catch (error) {
+        next(error);
+    }
 });
 
 // GET /api/questionnaire/:id - 获取单个问卷详情

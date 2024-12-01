@@ -68,5 +68,4 @@ function AdminLayout() {
     </Layout>
   );
 }
-
 export default AdminLayout;

@@ -11,7 +11,8 @@ interface FormData {
   name: string;
   phone: string;
   wechat: string;
-  birth_date: string;
+  birth_year: string;
+  birth_month: string;
   zodiac: string;
   mbti: string;
   location: string;
@@ -27,6 +28,80 @@ interface FormErrors {
   [key: string]: string;
 }
 
+const validateField = (name: string, value: any): string => {
+  switch (name) {
+    case 'name':
+      if (!value) return '请输入姓名';
+      if (value.length < 2 || value.length > 20) return '姓名长度必须在2-20个字符之间';
+      break;
+    case 'phone':
+      if (!value) return '请输入手机号';
+      if (!/^1[3-9]\d{9}$/.test(value)) return '请输入正确的手机号格式';
+      break;
+    case 'wechat':
+      if (!value) return '请输入微信号';
+      if (value.length < 6 || value.length > 20) return '微信号长度必须在6-20个字符之间';
+      break;
+    case 'birth_year':
+      if (!value) return '请选择出生年份';
+      if (new Date(value) > new Date()) return '出生年份不能是将来时间';
+      if (new Date(value) > new Date('2006-12-31')) return '此活动仅对18岁以上开放';
+      break;
+    case 'birth_month':
+      if (!value) return '请选择出生月份';
+      if (new Date(value) > new Date()) return '出生月份不能是将来时间';
+      if (new Date(value) > new Date('2006-12-31')) return '此活动仅对18岁以上开放';
+      break;
+    case 'zodiac':
+      if (!value) return '请选择星座';
+      if (!['白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座', 
+           '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座'].includes(value)) {
+        return '请选择有效的星座';
+      }
+      break;
+    case 'mbti':
+      if (!value) return '请输入MBTI类型';
+      if (!/^[IiEe][NnSs][FfTt][JjPp]$/.test(value)) return '请输入正确的MBTI格式';
+      break;
+    case 'location':
+      if (!value) return '请输入所在地';
+      if (value.length < 2 || value.length > 50) return '所在地长度必须在2-50个字符之间';
+      break;
+    case 'gender':
+      if (!value) return '请选择性别';
+      break;
+    case 'orientation':
+      if (!value) return '请选择性取向';
+      break;
+    case 'occupation':
+      if (!value) return '请输入职业/专业';
+      if (value.length < 2 || value.length > 50) return '职业/专业长度必须在2-50个字符之间';
+      break;
+    case 'self_intro':
+      if (!value) return '请输入自我介绍';
+      if (value.length < 20 || value.length > 1000) return '自我介绍长度必须在20-1000个字符之间';
+      break;
+    case 'images':
+      if (!value.length) return '请至少上传一张图片';
+      if (value.length > 10) return '最多只能上传10张图片';
+      const invalidFormat = value.some((file: File) => 
+        !['image/jpeg', 'image/png'].includes(file.type)
+      );
+      if (invalidFormat) return '只支持 JPG/PNG 格式的图片';
+      break;
+  }
+  return '';
+};
+
+const validateForm = (data: FormData): FormErrors => {
+  const errors: FormErrors = {};
+  Object.keys(data).forEach(key => {
+    const error = validateField(key, data[key as keyof FormData]);
+    if (error) errors[key] = error;
+  });
+  return errors;
+};
+
 export default function QuestionnairePage() {
   useEffect(() => {
   }, []);
@@ -35,7 +110,8 @@ export default function QuestionnairePage() {
     name: '',
     phone: '',
     wechat: '',
-    birth_date: '',
+    birth_year: '',
+    birth_month: '',
     zodiac: '',
     mbti: '',
     location: '',
@@ -50,71 +126,24 @@ export default function QuestionnairePage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // 生成年份选项（18-60岁，从2006年开始）
+  const yearOptions = Array.from(
+    { length: 27 }, 
+    (_, i) => 2006 - i
+  );  // 这样会生成 [2006, 2005, 2004, ..., 1964]
 
-
-  const validateField = (name: string, value: any): string => {
-    switch (name) {
-      case 'name':
-        if (!value) return '请输入姓名';
-        if (value.length < 2 || value.length > 20) return '姓名长度必须在2-20个字符之间';
-        break;
-      case 'phone':
-        if (!value) return '请输入手机号';
-        if (!/^1[3-9]\d{9}$/.test(value)) return '请输入正确的手机号格式';
-        break;
-      case 'wechat':
-        if (!value) return '请输入微信号';
-        if (value.length < 6 || value.length > 20) return '微信号长度必须在6-20个字符之间';
-        break;
-      case 'birth_date':
-        if (!value) return '请选择出生日期';
-        if (new Date(value) > new Date()) return '出生日期不能是将来时间';
-        if (new Date(value) > new Date('2006-12-31')) return '此活动仅对18岁以上开放';
-        break;
-      case 'zodiac':
-        if (!value) return '请选择星座';
-        if (!['白羊座', '金牛座', '双子座', '巨蟹座', '狮子座', '处女座', 
-             '天秤座', '天蝎座', '射手座', '摩羯座', '水瓶座', '双鱼座'].includes(value)) {
-          return '请选择有效的星座';
-        }
-        break;
-      case 'mbti':
-        if (!value) return '请输入MBTI类型';
-        if (!/^[IiEe][NnSs][FfTt][JjPp]$/.test(value)) return '请输入正确的MBTI格式';
-        break;
-      case 'location':
-        if (!value) return '请输入所在地';
-        if (value.length < 2 || value.length > 50) return '所在地长度必须在2-50个字符之间';
-        break;
-      case 'gender':
-        if (!value) return '请选择性别';
-        break;
-      case 'orientation':
-        if (!value) return '请选择性取向';
-        break;
-      case 'occupation':
-        if (!value) return '请输入职业/专业';
-        if (value.length < 2 || value.length > 50) return '职业/专业长度必须在2-50个字符之间';
-        break;
-      case 'self_intro':
-        if (!value) return '请输入自我介绍';
-        if (value.length < 20 || value.length > 1000) return '自我介绍长度必须在20-1000个字符之间';
-        break;
-      case 'images':
-        if (!value.length) return '请至少上传一张图片';
-        if (value.length > 10) return '最多只能上传10张图片';
-        const invalidFormat = value.some((file: File) => 
-          !['image/jpeg', 'image/png'].includes(file.type)
-        );
-        if (invalidFormat) return '只支持 JPG/PNG 格式的图片';
-        break;
-    }
-    return '';
-  };
+  // 月份选项
+  const monthOptions = Array.from(
+    { length: 12 }, 
+    (_, i) => ({
+      value: String(i + 1).padStart(2, '0'),
+      label: `${i + 1}月`
+    })
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -127,14 +156,21 @@ export default function QuestionnairePage() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();    
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const validationErrors = validateForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setSubmitError('请按照要求修改表格');
+      return;
+    }
+    
     if (typeof console !== 'undefined') {
       console.log('表单数据:', formData);
     }
     
+    setSubmitError('');
     setIsSubmitting(true);
-    setSubmitError(null);
 
     try {
       // 1. 验证字段
@@ -151,11 +187,12 @@ export default function QuestionnairePage() {
       }
 
       // 2. 构造完整的提交数据
-      const submitData: QuestionnaireData = {
+      const submitData = {
         name: formData.name,
         phone: formData.phone,
         wechat: formData.wechat,
-        birth_date: formData.birth_date,
+        birth_year: formData.birth_year,
+        birth_month: formData.birth_month,
         zodiac: formData.zodiac,
         mbti: formData.mbti.toUpperCase(),
         location: formData.location,
@@ -174,16 +211,34 @@ export default function QuestionnairePage() {
       }
       setIsSuccessModalOpen(true);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '提交失败，请重试';
-      setSubmitError(errorMessage);
-      setErrors(prev => ({
-        ...prev,
-        submit: errorMessage
-      }));
+      console.error('Submit error:', error);
+      setSubmitError('提交失败，请重试');
     } finally {
       setIsSubmitting(false);
-      setIsLoading(false);
     }
+  };
+
+  // 修改图片上传的处理函数
+  const handleImagesChange = (files: File[], urls?: string[]) => {
+    // 同时更新 images 和 imageUrls
+    setFormData(prev => ({ 
+      ...prev, 
+      images: files,
+      imageUrls: urls || [] // 直接使用新的 urls，而不是追加
+    }));
+    
+    // 根据 files 和 urls 的综合状态来判断是否有图片
+    const hasImages = files.length > 0 || (urls && urls.length > 0);
+    
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (hasImages) {
+        delete newErrors.images;
+      } else {
+        newErrors.images = '请至少上传一张图片';
+      }
+      return newErrors;
+    });
   };
 
   return (
@@ -241,15 +296,35 @@ export default function QuestionnairePage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>出生日期</label>
-            <input
-              type="date"
-              name="birth_date"
-              className={styles.input}
-              value={formData.birth_date}
-              onChange={handleChange}
-            />
-            {errors.birth_date && <span className={styles.error}>{errors.birth_date}</span>}
+            <label className={styles.label}>出生年月</label>
+            <div className={styles.dateSelectGroup}>
+              <select
+                name="birth_year"
+                className={styles.dateSelect}
+                value={formData.birth_year}
+                onChange={handleChange}
+              >
+                <option value="">选择年份</option>
+                {yearOptions.map(year => (
+                  <option key={year} value={year}>{year}年</option>
+                ))}
+              </select>
+              <select
+                name="birth_month"
+                className={styles.dateSelect}
+                value={formData.birth_month}
+                onChange={handleChange}
+              >
+                <option value="">选择月份</option>
+                {monthOptions.map(month => (
+                  <option key={month.value} value={month.value}>
+                    {month.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.birth_year && <span className={styles.error}>{errors.birth_year}</span>}
+            {errors.birth_month && <span className={styles.error}>{errors.birth_month}</span>}
           </div>
 
           <div className={styles.formGroup}>
@@ -313,7 +388,10 @@ export default function QuestionnairePage() {
                   onChange={handleChange}
                   className={styles.radioInput}
                 />
-                <div className={styles.radioButton}>男性</div>
+                <div className={styles.radioButton}>
+                  <i className="fas fa-male" style={{ marginRight: '8px', color: '#007bff' }}></i>
+                  男性
+                </div>
               </label>
               <label className={styles.radioLabel}>
                 <input
@@ -324,7 +402,10 @@ export default function QuestionnairePage() {
                   onChange={handleChange}
                   className={styles.radioInput}
                 />
-                <div className={styles.radioButton}>女性</div>
+                <div className={styles.radioButton}>
+                  <i className="fas fa-female" style={{ marginRight: '8px', color: '#ff69b4' }}></i>
+                  女性
+                </div>
               </label>
             </div>
             {errors.gender && <span className={styles.error}>{errors.gender}</span>}
@@ -385,11 +466,7 @@ export default function QuestionnairePage() {
             <label className={styles.label}>社交媒体截图</label>
             <ImageUpload
               value={formData.images}
-              onChange={(files, urls) => setFormData(prev => ({ 
-                ...prev, 
-                images: files,
-                imageUrls: [...(prev.imageUrls || []), ...(urls || [])]
-              }))}
+              onChange={handleImagesChange}  // 使用新的处理函数
               maxFiles={10}
               maxSize={10}
             />
@@ -403,6 +480,13 @@ export default function QuestionnairePage() {
           >
             {isSubmitting ? '提交中...' : '提交问卷'}
           </button>
+          
+          {submitError && (
+            <span className={styles.error}>
+              {submitError}
+            </span>
+          )}
+
           <SuccessModal 
             isOpen={isSuccessModalOpen}
             onClose={() => setIsSuccessModalOpen(false)}

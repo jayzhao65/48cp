@@ -39,8 +39,8 @@ export default function Login() {
         <div className={styles.loginContent}>
           <div className={styles.loginHeader}>
             <div className={styles.logo}>+</div>
-            <h1 className={styles.title}>Welcome back!</h1>
-            <p className={styles.subtitle}>Please enter your details</p>
+            <h1 className={styles.title}>小伙子们，笑一笑</h1>
+            <p className={styles.subtitle}>Have a happy silly day!</p>
           </div>
 
           <Form 
@@ -64,11 +64,6 @@ export default function Login() {
             >
               <Input.Password placeholder="Enter your password" />
             </Form.Item>
-
-            <div className={styles.formOptions}>
-              <Checkbox>Remember for 30 days</Checkbox>
-              <a href="#" className={styles.forgotPassword}>Forgot password?</a>
-            </div>
 
             <Button type="primary" htmlType="submit" className={styles.submitButton}>
               Log In

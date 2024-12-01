@@ -7,4 +7,47 @@
   color: rgba(0, 0, 0, 0.85);
   font-weight: 500;
   font-size: 20px;
+}
+
+.dashboard {
+  padding: 24px;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon {
+  font-size: 24px;
+}
+
+.statTitle {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+}
+
+.statNumber {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.recentList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recentItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.recentItem:hover {
+  background-color: rgba(0, 0, 0, 0.04);
 } 

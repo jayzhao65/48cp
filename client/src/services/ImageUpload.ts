@@ -1,16 +1,17 @@
 // src/services/ImageUpload.ts
 import { apiClient } from './api';
-import axios from 'axios';
 
-// Create custom instance with retry logic
-const uploadClient = axios.create();
-uploadClient.interceptors.response.use(null, async error => {
-  const maxRetries = 2;
+// 添加重试逻辑到 apiClient 的拦截器
+apiClient.interceptors.response.use(null, async error => {
+  const maxRetries = 3;
+  const retryDelay = 1000;
   error.config.retryCount = error.config.retryCount || 0;
   
-  if (error.config.retryCount < maxRetries) {
+  if (error.config.retryCount < maxRetries && 
+      (error.response?.status === 502 || error.response?.status === 504)) {
     error.config.retryCount++;
-    return uploadClient(error.config);
+    await new Promise(resolve => setTimeout(resolve, retryDelay * error.config.retryCount));
+    return apiClient(error.config);
   }
   return Promise.reject(error);
 });
@@ -21,14 +22,12 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('image', file);
 
-    // 添加调试日志
-    console.log('Using baseURL:', apiClient.defaults.baseURL);
-
     try {
-      const response = await uploadClient.post('/upload', formData, {
-        headers: {},
-        // 添加超时和重试配置
-        timeout: 30000, // 30秒超时
+      const response = await apiClient.post('/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 60000,
       });
       return response.data;
     } catch (error) {
@@ -41,7 +40,7 @@ export const uploadApi = {
   uploadImages: async (files: File[]) => {
     try {
       // 限制并发数量
-      const batchSize = 4; // 每批处理4个文件
+      const batchSize = 2;
       const results = [];
       
       for (let i = 0; i < files.length; i += batchSize) {
@@ -52,15 +51,26 @@ export const uploadApi = {
         const batchResults = await Promise.all(promises);
         results.push(...batchResults);
         
-        // 添加延迟，避免服务器压力过大
+        // 增加批次间隔时间
         if (i + batchSize < files.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
       
       return results;
     } catch (error) {
       console.error('Batch upload error:', error);
+      throw error;
+    }
+  },
+
+  // 添加删除图片的方法
+  deleteImage: async (imageUrl: string) => {
+    try {
+      const response = await apiClient.post('/delete-image', { url: imageUrl });
+      return response.data;
+    } catch (error) {
+      console.error('Delete image error:', error);
       throw error;
     }
   }

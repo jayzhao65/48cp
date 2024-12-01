@@ -2,28 +2,25 @@
 .container {
   min-height: 100vh;
   background-color: #f8f9fc;
-  padding: 0.75rem;
+  padding: 16px;
   display: flex;
   justify-content: center;
-  max-width: 390px;
-  margin: 0 auto;
+  align-items: flex-start;
 }
 
 .formContainer {
   width: 100%;
-  max-width: 358px;
+  max-width: 350px;
   margin: 0 auto;
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
   background: white;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .title {
@@ -40,32 +37,33 @@
 }
 
 .formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
   background: white;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 8px;
+  padding: 12px;
+  border-radius: 12px;
   width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .label {
-  font-size: 0.875rem;
+  font-size: 15px;
   font-weight: 500;
   color: #374151;
+  margin-bottom: 8px;
+  display: block;
 }
 
 .input {
   width: 100%;
-  padding: 0.625rem 0.875rem;
-  border-radius: 0.5rem;
-  background-color: #f9fafb;
-  border: 0.5px solid #e5e7eb;
-  transition: all 0.2s ease;
-  color: #374151;
-  font-size: 0.875rem;
-  min-height: 2.5rem;
+  box-sizing: border-box;
+  height: 50px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  background: #f8f9fc;
 }
 
 .input::placeholder {
@@ -73,32 +71,39 @@
 }
 
 .input:focus {
+  border-color: #3b82f6;
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 .textarea {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s ease;
-  border-radius: 0.5rem;
-  min-height: 100px;
+  width: calc(100% - 2px);
+  box-sizing: border-box;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
   resize: vertical;
-  color: #374151;
-  font-size: 0.875rem;
+  background: #f8f9fc;
+  font-family: inherit;
+  margin: 0;
+  display: block;
 }
 
 .radioGroup {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
+  flex-wrap: wrap;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .radioLabel {
   flex: 1;
+  min-width: 80px;
+  max-width: calc(50% - 4px);
 }
 
 .radioInput {
@@ -106,24 +111,23 @@
 }
 
 .radioButton {
-  display: block;
-  width: 100%;
-  padding: 0.625rem 0.75rem;
-  text-align: center;
-  border-radius: 0.5rem;
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  background: #f8f9fc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  color: #374151;
-  font-size: 0.875rem;
-  white-space: nowrap;
+  transition: all 0.2s;
+  font-size: 14px;
+  height: 36px;
 }
 
 .radioInput:checked + .radioButton {
-  background-color: #6366f1;
-  border-color: #6366f1;
-  color: white;
+  background: #e6efff;
+  border-color: #3b82f6;
+  color: #3b82f6;
 }
 
 .submitButton {
@@ -260,4 +264,26 @@ select.input {
 input[type="date"].input {
   min-height: 2.5rem;
   padding-right: 0.5rem;
+}
+
+.dateSelectGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.dateSelect {
+  flex: 1;
+  height: 50px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8f9fc;
+  cursor: pointer;
+}
+
+.dateSelect:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }

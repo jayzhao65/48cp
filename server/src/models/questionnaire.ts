@@ -57,7 +57,17 @@ const questionnaireSchema = new Schema({
   name: { type: String, required: true },
   phone: { type: String, required: true },
   wechat: { type: String, required: true },
-  birth_date: { type: String, required: true },
+  birth_date: {
+    type: String,
+    required: true,
+    validate: {
+      validator: function(v: string) {
+        // 验证日期格式 YYYY-MM
+        return /^\d{4}-\d{2}$/.test(v);
+      },
+      message: '出生日期格式必须为 YYYY-MM'
+    }
+  },
   zodiac: { 
     type: String, 
     enum: ZodiacEnum,
@@ -105,7 +115,16 @@ const questionnaireSchema = new Schema({
 // 只在创建和更新时计算年龄
 questionnaireSchema.pre('save', function(next) {
   if (this.birth_date) {
-    this.age = calculateAge(this.birth_date);
+    const [year, month] = this.birth_date.split('-');
+    const birthDate = new Date(parseInt(year), parseInt(month) - 1);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    this.age = age;
   }
   next();
 });

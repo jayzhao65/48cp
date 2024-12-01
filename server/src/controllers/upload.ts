@@ -3,6 +3,17 @@ import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// 根据环境配置BASE_URL
+console.log('Environment variables:', {
+  NODE_ENV: process.env.NODE_ENV,
+  BASE_URL: process.env.BASE_URL
+});
+
+const BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'http://8.218.98.220'
+  : 'http://localhost:3001';
+console.log('Selected BASE_URL:', BASE_URL);
+
 // 导出一个名为 uploadImage 的异步函数，用于处理图片上传
 // req: 包含请求信息的对象（如文件、请求头等）
 // res: 用于发送响应给客户端的对象
@@ -42,8 +53,8 @@ export const uploadImage = async (req: Request, res: Response) => {
       });
     }
 
-    // 生成访问URL
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+    // 修改URL生成逻辑，使用配置的BASE_URL
+    const imageUrl = `${BASE_URL}/uploads/${file.filename}`;
     console.log('生成的访问URL:', imageUrl);
     console.log('====== 图片上传成功 ======');
 
@@ -57,6 +68,50 @@ export const uploadImage = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : '上传失败'
+    });
+  }
+};
+
+// 添加删除图片的控制器
+export const deleteImage = async (req: Request, res: Response) => {
+  try {
+    const imageUrl = req.body.url;
+    if (!imageUrl) {
+      return res.status(400).json({
+        success: false,
+        error: '未提供图片URL'
+      });
+    }
+
+    // 从URL中提取文件名
+    const filename = imageUrl.split('/').pop();
+    if (!filename) {
+      return res.status(400).json({
+        success: false,
+        error: '无效的图片URL'
+      });
+    }
+
+    const filePath = path.join(__dirname, '../../uploads', filename);
+
+    // 检查文件是否存在
+    if (fs.existsSync(filePath)) {
+      // 删除文件
+      fs.unlinkSync(filePath);
+      console.log(`已删除文件: ${filePath}`);
+    } else {
+      console.log(`文件不存在: ${filePath}`);
+    }
+
+    res.json({
+      success: true,
+      message: '图片已删除'
+    });
+  } catch (error) {
+    console.error('删除图片失败:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : '删除失败'
     });
   }
 };

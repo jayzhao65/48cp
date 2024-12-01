@@ -9,7 +9,7 @@
 
 import express, { NextFunction } from 'express';
 import multer from 'multer';
-import { uploadImage } from '../controllers/upload';
+import { uploadImage, deleteImage } from '../controllers/upload';
 import path from 'path';
 import fs from 'fs';
 
@@ -92,5 +92,8 @@ router.post('/upload', (req, res, next) => {
     });
   });
 });
+
+// 添加删除图片的路由
+router.post('/delete-image', deleteImage);
 
 export default router;
