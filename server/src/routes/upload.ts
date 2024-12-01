@@ -68,29 +68,37 @@ const router = express.Router();
 
 // POST /api/upload - 处理图片上传
 router.post('/upload', (req, res, next) => {
-  console.log('开始处理上传请求');
+  console.log('=============== 上传请求开始 ===============');
   
-  upload.single('image')(req, res, (err) => {
-    if (err) {
-      console.error('Multer 错误:', err);
-      return res.status(400).json({
-        success: false,
-        error: err.message
-      });
-    }
+  // 使用 Promise 包装 multer 中间件
+  const handleUpload = new Promise((resolve, reject) => {
+    upload.single('image')(req, res, (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(req.file);
+    });
+  });
 
-    console.log('Multer 处理完成，req.file:', req.file);  // 添加这行日志
-
-    uploadImage(req, res).catch(error => {
-      console.error('Upload Error:', error);
+  // 使用 async/await 处理上传
+  handleUpload
+    .then(() => {
+      // 只在响应未发送时继续处理
       if (!res.headersSent) {
-        res.status(500).json({
+        return uploadImage(req, res);
+      }
+    })
+    .catch(error => {
+      console.error('Upload Error:', error);
+      // 确保响应未发送时才发送错误响应
+      if (!res.headersSent) {
+        res.status(400).json({
           success: false,
-          error: error.message || '文件上传失败'
+          error: error.message || '文件上传失败，请确保：\n1. 使用 image 作为字段名\n2. 文件大小不超过限制\n3. 文件类型为图片'
         });
       }
     });
-  });
 });
 
 // 添加删除图片的路由

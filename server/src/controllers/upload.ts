@@ -21,8 +21,14 @@ export const uploadImage = async (req: Request, res: Response) => {
   try {
     console.log('====== 图片上传请求开始 ======');
     
+    // 如果响应已经发送，直接返回
+    if (res.headersSent) {
+      console.log('响应已经发送，跳过处理');
+      return;
+    }
+
     const file = req.file;
-    console.log('接收到的文件信息:', file);  // 添加完整的文件信息日志
+    console.log('接收到的文件信息:', file);
 
     if (!file) {
       console.log('错误：未接收到文件');
@@ -32,36 +38,40 @@ export const uploadImage = async (req: Request, res: Response) => {
       });
     }
 
-    // 在返回响应之前再次确认文件名
-    console.log('准备返回响应，文件名:', file.filename);
-    
-    // 修改URL生成逻辑，确保使用正确的文件名
-    const imageUrl = `${BASE_URL}/uploads/${file.filename}`;
-    console.log('准备返回的URL:', imageUrl);
+    // 构建文件路径
+    const filePath = path.join(__dirname, '../../uploads', file.filename);
+    console.log('文件保存路径:', filePath);
 
-    // 返回响应前的最后检查
-    if (!file.filename) {
-      console.error('错误：文件名为undefined');
+    // 检查文件是否成功保存
+    if (!fs.existsSync(filePath)) {
+      console.log('错误：文件未正确保存');
       return res.status(500).json({
         success: false,
-        error: 'Filename is undefined'
+        error: 'File not saved correctly'
       });
     }
 
-    // 返回响应
+    const imageUrl = `${BASE_URL}/uploads/${file.filename}`;
+    console.log('生成的访问URL:', imageUrl);
+    console.log('====== 图片上传成功 ======');
+
+    // 使用 return 确保函数在此处结束
     return res.json({
       success: true,
-      url: imageUrl,
-      filename: file.filename  // 添加额外信息用于调试
+      url: imageUrl
     });
 
   } catch (error) {
     console.error('====== 图片上传失败 ======');
     console.error('错误详情:', error);
-    return res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : '上传失败'
-    });
+    
+    // 如果响应已经发送，不再尝试发送错误响应
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '上传失败'
+      });
+    }
   }
 };
 
