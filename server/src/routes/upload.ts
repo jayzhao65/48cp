@@ -68,21 +68,21 @@ const router = express.Router();
 
 // POST /api/upload - 处理图片上传
 router.post('/upload', (req, res, next) => {
-  console.log('=============== 上传请求开始 ===============');
+  console.log('开始处理上传请求');
   
   upload.single('image')(req, res, (err) => {
     if (err) {
       console.error('Multer 错误:', err);
       return res.status(400).json({
         success: false,
-        error: '文件上传失败，请确保：\n1. 使用 image 作为字段名\n2. 文件大小不超过限制\n3. 文件类型为图片'
+        error: err.message
       });
     }
 
-    // 调用上传控制器处理请求
+    console.log('Multer 处理完成，req.file:', req.file);  // 添加这行日志
+
     uploadImage(req, res).catch(error => {
       console.error('Upload Error:', error);
-      // 确保之前没有发送过响应
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
