@@ -59,14 +59,7 @@ const questionnaireSchema = new Schema({
   wechat: { type: String, required: true },
   birth_date: {
     type: String,
-    required: true,
-    validate: {
-      validator: function(v: string) {
-        // 验证日期格式 YYYY-MM
-        return /^\d{4}-\d{2}$/.test(v);
-      },
-      message: '出生日期格式必须为 YYYY-MM'
-    }
+    required: true
   },
   zodiac: { 
     type: String, 
@@ -129,16 +122,5 @@ questionnaireSchema.pre('save', function(next) {
   next();
 });
 
-// 修改 pre-remove 钩子
-questionnaireSchema.pre('findOneAndDelete', function(next) {
-  const query = this.getQuery();
-  console.log('Attempting to remove document:', query._id);
-  next();
-});
-
-// 修改 post-remove 钩子
-questionnaireSchema.post('findOneAndDelete', function(doc) {
-  console.log('Document removed:', doc?._id);
-});
 
 export const Questionnaire = mongoose.model<IQuestionnaire>('Questionnaire', questionnaireSchema);
