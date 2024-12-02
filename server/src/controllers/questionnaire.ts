@@ -334,15 +334,8 @@ export const matchUsers = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { targetUserId } = req.body;
 
-    console.log('匹配请求参数:', { id, targetUserId }); // 添加日志
-
     const user1 = await Questionnaire.findById(id);
     const user2 = targetUserId ? await Questionnaire.findById(targetUserId) : null;
-
-    console.log('查找到的用户:', { 
-      user1: user1?._id, 
-      user2: user2?._id 
-    }); // 添加日志
 
     if (!user1) {
       return res.status(404).json({ success: false, error: '用户不存在' });
@@ -354,9 +347,6 @@ export const matchUsers = async (req: Request, res: Response) => {
 
     // 如果是取消匹配
     if (!targetUserId) {
-      console.log('执行取消匹配操作'); // 添加日志
-      
-      // 先查找现有的 couple 记录
       const existingCouple = await Couple.findOne({
         $or: [
           { user1: user1._id },
@@ -365,42 +355,41 @@ export const matchUsers = async (req: Request, res: Response) => {
       });
 
       if (existingCouple) {
-        console.log('删除现有的 couple 记录:', existingCouple._id);
         await existingCouple.deleteOne();
       }
 
-      const previousMatch = await Questionnaire.findById(user1.matched_with);
-      if (previousMatch) {
-        console.log('更新之前匹配用户的状态:', previousMatch._id);
-        previousMatch.set({
-          matched_with: null,
-          matched_at: null,
-          status: previousMatch.personality_report?.content?.raw_response ? 
-            QuestionnaireStatus.REPORTED : 
-            QuestionnaireStatus.SUBMITTED
-        });
-        await previousMatch.save();
+      if (user1.matched_with) {
+        await Questionnaire.updateOne(
+          { _id: user1.matched_with },
+          {
+            matched_with: null,
+            matched_at: null,
+            status: user1.personality_report?.content?.raw_response ? 
+              QuestionnaireStatus.REPORTED : 
+              QuestionnaireStatus.SUBMITTED
+          }
+        );
       }
 
-      user1.set({
-        matched_with: null,
-        matched_at: null,
-        status: user1.personality_report?.content?.raw_response ? 
-          QuestionnaireStatus.REPORTED : 
-          QuestionnaireStatus.SUBMITTED
-      });
-      await user1.save();
+      await Questionnaire.updateOne(
+        { _id: user1._id },
+        {
+          matched_with: null,
+          matched_at: null,
+          status: user1.personality_report?.content?.raw_response ? 
+            QuestionnaireStatus.REPORTED : 
+            QuestionnaireStatus.SUBMITTED
+        }
+      );
 
-      return res.json({ success: true, data: user1 });
+      const updatedUser = await Questionnaire.findById(id);
+      return res.json({ success: true, data: updatedUser });
     }
 
     // 如果是新建匹配
     if (user2) {
-      console.log('执行新建匹配操作'); // 添加日志
-
       const matchTime = new Date();
 
-      // 检查是否已存在匹配记录
       const existingCouple = await Couple.findOne({
         $or: [
           { user1: user1._id },
@@ -411,48 +400,42 @@ export const matchUsers = async (req: Request, res: Response) => {
       });
 
       if (existingCouple) {
-        console.log('删除已存在的匹配记录');
         await existingCouple.deleteOne();
       }
 
-      // 创建新的 couple 记录
       const couple = new Couple({
         user1: user1._id,
         user2: user2._id,
-        matchedAt: matchTime,
-        coupleId: 1  // 这里不需要手动设置，因为我们有 pre-save 中间件会自动处理
+        matchedAt: matchTime
       });
 
-      console.log('创建新的 couple 记录:', couple);
-      try {
-        await couple.save();
-        console.log('couple 记录保存成功');
-      } catch (error) {
-        console.error('保存 couple 记录失败:', error);
-        throw error;
-      }
+      await couple.save();
 
-      // 更新用户状态
-      user1.set({
-        matched_with: user2._id,
-        matched_at: matchTime,
-        status: QuestionnaireStatus.MATCHED
-      });
+      await Promise.all([
+        Questionnaire.updateOne(
+          { _id: user1._id },
+          {
+            matched_with: user2._id,
+            matched_at: matchTime,
+            status: QuestionnaireStatus.MATCHED
+          }
+        ),
+        Questionnaire.updateOne(
+          { _id: user2._id },
+          {
+            matched_with: user1._id,
+            matched_at: matchTime,
+            status: QuestionnaireStatus.MATCHED
+          }
+        )
+      ]);
 
-      user2.set({
-        matched_with: user1._id,
-        matched_at: matchTime,
-        status: QuestionnaireStatus.MATCHED
-      });
-
-      await Promise.all([user1.save(), user2.save()]);
-      console.log('用户状态更新完成');
-
-      return res.json({ success: true, data: user1 });  // 添加 return 语句
+      const updatedUser = await Questionnaire.findById(id);
+      return res.json({ success: true, data: updatedUser });
     }
 
   } catch (error) {
-    console.error('匹配用户失败，详细错误:', error);
+    console.error('匹配用户失败:', error);
     res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : '匹配失败，请重试'
