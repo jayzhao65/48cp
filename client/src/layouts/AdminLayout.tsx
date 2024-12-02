@@ -1,5 +1,5 @@
 import { Layout, Menu } from 'antd';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { 
   UserOutlined, 
   HeartOutlined, 
@@ -10,6 +10,10 @@ const { Header, Sider, Content } = Layout;
 
 function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // 从路径中获取当前选中的菜单项
+  const selectedKey = location.pathname.split('/').pop() || 'dashboard';
 
   const menuItems = [
     {
@@ -43,7 +47,7 @@ function AdminLayout() {
         <Sider width={200} style={{ background: '#fff' }}>
           <Menu
             mode="inline"
-            defaultSelectedKeys={['dashboard']}
+            selectedKeys={[selectedKey]}
             style={{ 
               height: '100%', 
               borderRight: 0,
