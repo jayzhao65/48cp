@@ -95,14 +95,14 @@ export default function Dashboard() {
         <Col span={12}>
           <Card title="最近匹配CP">
             <List
-              dataSource={stats.recentCouples}
-              renderItem={couple => (
+              dataSource={stats.recentCouples || []}
+              renderItem={e => (
                 <List.Item>
                   <Typography.Text>
-                    {couple.user1.name} ❤ {couple.user2.name}
+                    {e?.user1?.name || '未知用户'} ❤ {e?.user2?.name || '未知用户'}
                   </Typography.Text>
                   <Typography.Text type="secondary">
-                    {new Date(couple.matchedAt).toLocaleDateString()}
+                    {e?.matchedAt ? new Date(e.matchedAt).toLocaleDateString() : '未知日期'}
                   </Typography.Text>
                 </List.Item>
               )}

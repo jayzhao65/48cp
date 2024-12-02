@@ -49,11 +49,13 @@ export default function Couples() {
       title: '用户1',
       key: 'user1',
       width: 200,
-      render: (_, record) => (
+      render: (_, t) => (
         <div>
-          <div>{record.user1.name}</div>
+          <div>{t?.user1?.name || '未知用户'}</div>
           <div className={styles.userInfo}>
-            {record.user1.gender === 'male' ? '男' : '女'} · {record.user1.age}岁 · {record.user1.location}
+            {t?.user1 ? (
+              `${t.user1.gender === 'male' ? '男' : '女'} · ${t.user1.age || '?'}岁 · ${t.user1.location || '未知'}`
+            ) : '信息不完整'}
           </div>
         </div>
       ),
