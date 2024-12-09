@@ -1,5 +1,44 @@
 import axios from 'axios';
 
+// API 响应接口定义
+export interface OpenRouterResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+export interface AnthropicResponse {
+  id: string;
+  type: 'message';
+  role: 'assistant';
+  content: Array<{
+    type: 'text';
+    text: string;
+  }>;
+  model: string;
+  stop_reason: string | null;
+  stop_sequence: string | null;
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+  };
+}
+
+// 统一的 AI 响应格式
+export interface AIServiceResponse {
+  success: boolean;
+  data?: {
+    content: string;
+    usage?: {
+      input_tokens: number;
+      output_tokens: number;
+    };
+  };
+  error?: string;
+}
+
 const baseURL = import.meta.env.PROD 
   ? '/api'  // 生产环境
   : 'http://localhost:3001/api';     // 开发环境

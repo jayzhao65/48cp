@@ -131,5 +131,44 @@ export const questionnaireApi = {
     } catch (error) {
       throw error;
     }
-  }
+  },
+
+  generatePDF: async (userId: string) => {
+    try {
+      const response = await apiClient.post(
+        `/questionnaire/${userId}/pdf`,
+        {},
+        {
+          timeout: 60000, // 1分钟超时
+          responseType: 'json',
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      );
+      
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'PDF生成失败');
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      // 详细的错误处理
+      const errorMessage = error.response?.data?.error || 
+                          error.message || 
+                          'PDF生成失败';
+                          
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('PDF生成超时，请重试');
+      }
+      
+      console.error('PDF Generation Error:', {
+        userId,
+        error: errorMessage,
+        details: error.response?.data
+      });
+      
+      throw new Error(errorMessage);
+    }
+  },
 };

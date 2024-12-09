@@ -60,6 +60,7 @@ export default function Users() {
   const [nestedUser, setNestedUser] = useState<UserData | null>(null);
   const [nestedGeneratingReport, setNestedGeneratingReport] = useState(false);
   const [originalUsers, setOriginalUsers] = useState<UserData[]>([]);
+  const [pdfLoading, setPdfLoading] = useState(false);  // 添加 PDF 生成的 loading 状态
 
   // 定义表格的列配置
   const columns: ColumnsType<UserData> = [
@@ -91,6 +92,12 @@ export default function Users() {
       title: '所在地',
       dataIndex: 'location',
       key: 'location',
+      width: 120,
+    },
+    {
+      title: '微信号',
+      dataIndex: 'wechat',
+      key: 'wechat',
       width: 120,
     },
     {
@@ -171,7 +178,7 @@ export default function Users() {
     setDrawerVisible(true);
   };
 
-  // 处理生成报告的函数
+  // 修改生成报告的处理函数
   const handleGenerateReport = async () => {
     if (!selectedUser) return;
     setGeneratingReport(true);
@@ -187,6 +194,25 @@ export default function Users() {
       message.error('报告生成失败');
     } finally {
       setGeneratingReport(false);
+    }
+  };
+
+  // 添加生成 PDF 的处理函数
+  const handleGeneratePDF = async () => {
+    if (!selectedUser) return;
+    setPdfLoading(true);
+    try {
+      const result = await questionnaireApi.generatePDF(selectedUser._id);
+      if (result.success) {
+        message.success('PDF生成成功');
+        setSelectedUser(result.data);
+        fetchAllUsers();
+      }
+    } catch (error) {
+      console.error('生成PDF失败:', error);
+      message.error('PDF生成失败');
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -390,7 +416,9 @@ export default function Users() {
             <PersonalityReport
               user={selectedUser}
               onGenerate={handleGenerateReport}
+              onGeneratePDF={handleGeneratePDF}
               loading={generatingReport}
+              pdfLoading={pdfLoading}
             />
 
             {/* 匹配 CP 部分 */}
@@ -447,6 +475,8 @@ export default function Users() {
               user={nestedUser}
               onGenerate={handleNestedGenerateReport}
               loading={nestedGeneratingReport}
+              onGeneratePDF={handleGeneratePDF}
+              pdfLoading={pdfLoading}
             />
           </div>
         )}

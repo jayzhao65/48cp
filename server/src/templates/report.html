@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>性格分析报告</title>
+    <style type="text/css">
+        @font-face {
+            font-family: 'Huiwen_mingchao';
+            src: url('data:font/otf;base64,{{{ fontBase64 }}}') format('opentype');
+            font-display: swap;
+        }
+        {{{ cssContent }}}
+    </style>
+</head>
+<body>
+    <!-- 封面页结构 -->
+    <div class="cover-page" style="background-image: url('{{{ backgroundPattern }}}')">
+        <div class="cover-content">
+            <img src="{{{ logoPath }}}" alt="Logo" class="cover-logo">
+            <h1 class="cover-title">{{ name }}的性格分析报告</h1>
+            
+            <!-- 新的信息容器结构 -->
+            <div class="info-container">
+                <div class="info-item">
+                    <span class="info-label">姓名</span>
+                    <span class="info-value">{{ name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">性别</span>
+                    <span class="info-value">{{ gender }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">出生日期</span>
+                    <span class="info-value">{{ birthDate }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">所在地</span>
+                    <span class="info-value">{{ location }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 报告内容 -->
+    <div class="report">
+        <main class="report-content">
+            {{#each sections}}
+            <section class="report-section">
+                <div class="section-header">
+                    <h2>{{ title }}</h2>
+                    <div class="section-decoration"></div>
+                </div>
+                <div class="section-content">
+                    {{{ content }}}
+                </div>
+            </section>
+            {{/each}}
+        </main>
+    </div>
+</body>
+</html>

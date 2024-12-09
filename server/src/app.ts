@@ -22,10 +22,14 @@ import dashboardRoutes from './routes/dashboard';
 import * as path from 'path';
 import fs from 'fs';
 import multer from 'multer';
+import { initializeDirectories } from './utils/init';
 
 
 // 创建一个 Express 应用实例
 const app = express();
+
+// 初始化必要的目录
+initializeDirectories();
 
 // 确保上传目录存在
 const uploadDir = path.join(__dirname, '../uploads');

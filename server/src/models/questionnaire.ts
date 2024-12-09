@@ -27,6 +27,15 @@ function calculateAge(birthDate: string): number {
   return age;
 }
 
+interface IPersonalityReport {
+  content: {
+    raw_response?: string;
+  };
+  pdf_path?: string;
+  generated_at: Date;
+  generation_count: number;
+}
+
 export interface IQuestionnaire extends Document {
   name: string;
   phone: string;
@@ -41,13 +50,7 @@ export interface IQuestionnaire extends Document {
   self_intro: string;
   images: string[];
   status: QuestionnaireStatus;
-  personality_report?: {
-    content?: {
-      raw_response?: string;
-    };
-    generated_at: Date;
-    generation_count: number;
-  };
+  personality_report?: IPersonalityReport;
   matched_with?: Schema.Types.ObjectId | null;
   matched_at?: Date | null;
   age?: number;

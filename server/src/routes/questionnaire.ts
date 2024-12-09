@@ -15,8 +15,10 @@ import {
     getQuestionnaires,
     getQuestionnaireById,
     generateReport,
-    matchUsers
+    matchUsers,
+    handlePDFGeneration
 } from '../controllers/questionnaire';
+import path from 'path';
 
 const router = express.Router();
 
@@ -50,11 +52,22 @@ router.get('/questionnaire/:id', async (req, res, next) => {
 });
 
 // POST /api/questionnaire/:id/report - 生成性格报告
-router.post('/questionnaire/:id/report', async (req, res, next) => {
+router.post('/questionnaire/:id/report', async (req, res) => {
   try {
     await generateReport(req, res);
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    console.error('生成报告错误:', {
+      message: error.message,
+      code: error.code,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      details: error.response?.data
+    });
   }
 });
 
@@ -70,6 +83,22 @@ router.post('/questionnaire/:id/match', async (req, res) => {
     });
   }
 });
+
+// POST /api/questionnaire/:id/pdf - 生成 PDF 报告
+router.post('/questionnaire/:id/pdf', async (req, res) => {
+  try {
+    await handlePDFGeneration(req, res);
+  } catch (error) {
+    console.error('PDF生成错误:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: '生成PDF失败，请重试' 
+    });
+  }
+});
+
+// 修改静态文件服务路径，与 PDF 生成路径保持一致
+router.use('/reports', express.static(path.join(__dirname, '../../public/reports')));
 
 // 导出路由对象，让其他文件可以使用这些路由定义
 export default router

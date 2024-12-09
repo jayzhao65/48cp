@@ -3,12 +3,6 @@ import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// 根据环境配置BASE_URL
-console.log('Environment variables:', {
-  NODE_ENV: process.env.NODE_ENV,
-  BASE_URL: process.env.BASE_URL
-});
-
 const BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'http://8.218.98.220'
   : 'http://localhost:3001';
