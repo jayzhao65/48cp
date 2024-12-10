@@ -92,12 +92,6 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
     // 给字体加载一些时间
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // 检查实际渲染效果
-    await page.screenshot({
-      path: 'debug-screenshot.png',
-      fullPage: true
-    });
-
     // 在生成 PDF 之前添加调试代码（在 page.pdf 之前）
     const styles = await page.evaluate(() => {
       const bodyStyles = window.getComputedStyle(document.body);

@@ -17,27 +17,6 @@ import { Couple } from '../models/couple';
 import { AIResponse, AnthropicResponse, UserInfo, CozeResponse } from '../types/api';
 import sharp from 'sharp';
 
-// Add this function near the top of the file, after the imports
-const compressImage = async (imageUrl: string): Promise<string> => {
-  try {
-    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-    const buffer = Buffer.from(response.data, 'binary');
-    
-    const image = await sharp(buffer)
-      .jpeg({ quality: 80 }) // 压缩质量设置为 80·
-      .toBuffer();
-
-    // 将压缩后的图片上传到服务器，获取新的 URL
-    // 这里需要实现上传逻辑，返回新的 URL
-    // ...
-
-    return imageUrl; // 临时返回原始 URL，等待实现上传逻辑
-  } catch (error) {
-    console.error('图片压缩失败:', error);
-    return imageUrl; // 如果压缩失败，返回原始 URL
-  }
-};
-
 // 导出一个异步函数，用于处理提交问卷的请求
 // async 表示这是一个异步函数，可以等待其他异步操作完成
 export const submitQuestionnaire = async (req: Request, res: Response) => {
@@ -132,63 +111,6 @@ export const getQuestionnaireById = async (req: Request, res: Response) => {
     }
   };
   
-  // 添加 Anthropic API 调用函数
-  const callAnthropicAPI = async (messages: any[], imageContents: any[]) => {
-    console.log('正在调用 Anthropic API...');
-    
-    // 转换消息格式
-    const convertedMessages = messages.map(msg => ({
-      ...msg,
-      content: msg.content.map((content: any) => {
-        if (content.type === 'image_url') {
-          // 转换为 Anthropic 的图片格式
-          return {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: 'image/jpeg',
-              data: content.image_url.url.split(',')[1] // 移除 data:image/jpeg;base64, 前缀
-            }
-          };
-        }
-        return content;
-      })
-    }));
-
-    // 构建请求体
-    const requestBody = {
-      model: "claude-3-5-sonnet-20241022",
-      messages: convertedMessages,
-      max_tokens: 4096,
-      temperature: 0.7,
-    };
-
-    console.log('Anthropic 请求体:', JSON.stringify({
-      ...requestBody,
-      messages: convertedMessages.map(msg => ({
-        ...msg,
-        content: msg.content.map((content: any) => 
-          content.type === 'image' ? { type: 'image', source: { type: 'base64', data: '[BASE64_IMAGE]' }} : content
-        )
-      }))
-    }, null, 2));
-
-    const response = await axios.post(
-      'https://api.anthropic.com/v1/messages',
-      requestBody,
-      {
-        headers: {
-          'x-api-key': process.env.ANTHROPIC_API_KEY!,
-          'anthropic-version': '2023-06-01',
-          'Content-Type': 'application/json',
-        },
-        timeout: 180000
-      }
-    );
-
-    return response.data as AnthropicResponse;
-  };
-
   // 修改 generateReport 函数
   export const generateReport = async (req: Request, res: Response) => {
     try {
@@ -196,14 +118,6 @@ export const getQuestionnaireById = async (req: Request, res: Response) => {
       const questionnaire = await Questionnaire.findById(req.params.id) as IQuestionnaire;
       if (!questionnaire) {
         return res.status(404).json({ success: false, error: '问卷不存在' });
-      }
-
-      // 压缩图片
-      let compressedImages: string[] = [];
-      if (questionnaire.images && questionnaire.images.length > 0) {
-        compressedImages = await Promise.all(
-          questionnaire.images.map(imageUrl => compressImage(imageUrl))
-        );
       }
 
       const userInfo: UserInfo = {
@@ -214,7 +128,7 @@ export const getQuestionnaireById = async (req: Request, res: Response) => {
         mbti: questionnaire.mbti,
         occupation: questionnaire.occupation,
         self_intro: questionnaire.self_intro,
-        images: compressedImages // 使用压缩后的图片 URL
+        images: questionnaire.images // 使用原始图片 URL
       };
 
       const aiResponse = await callCozeAPI(userInfo);
