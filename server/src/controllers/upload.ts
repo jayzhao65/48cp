@@ -1,21 +1,22 @@
-// 从 express 包中导入 Request 和 Response 类型，用于类型声明
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+import Client from 'ssh2-sftp-client';
 
-const BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'http://8.218.98.220'
-  : 'http://localhost:3001';
-console.log('Selected BASE_URL:', BASE_URL);
+const BASE_URL = 'http://8.218.98.220'; // 统一使用生产服务器URL
 
-// 导出一个名为 uploadImage 的异步函数，用于处理图片上传
-// req: 包含请求信息的对象（如文件、请求头等）
-// res: 用于发送响应给客户端的对象
+// SFTP 配置
+const sftpConfig = {
+  host: process.env.SFTP_HOST,
+  port: Number(process.env.SFTP_PORT) || 22,
+  username: process.env.SFTP_USERNAME,
+  password: process.env.SFTP_PASSWORD
+};
+
 export const uploadImage = async (req: Request, res: Response) => {
   try {
     console.log('====== 图片上传请求开始 ======');
     
-    // 如果响应已经发送，直接返回
     if (res.headersSent) {
       console.log('响应已经发送，跳过处理');
       return;
@@ -32,24 +33,24 @@ export const uploadImage = async (req: Request, res: Response) => {
       });
     }
 
-    // 构建文件路径
-    const filePath = path.join(__dirname, '../../uploads', file.filename);
-    console.log('文件保存路径:', filePath);
-
-    // 检查文件是否成功保存
-    if (!fs.existsSync(filePath)) {
-      console.log('错误：文件未正确保存');
-      return res.status(500).json({
-        success: false,
-        error: 'File not saved correctly'
-      });
-    }
+    // 使用 SFTP 上传到生产服务器
+    const sftp = new Client();
+    await sftp.connect(sftpConfig);
+    
+    const localPath = file.path;
+    const remotePath = `/var/www/48cp/server/uploads/${file.filename}`;
+    
+    console.log('开始SFTP上传:', { localPath, remotePath });
+    await sftp.put(localPath, remotePath);
+    await sftp.end();
+    
+    // 删除临时文件
+    fs.unlinkSync(localPath);
 
     const imageUrl = `${BASE_URL}/uploads/${file.filename}`;
     console.log('生成的访问URL:', imageUrl);
     console.log('====== 图片上传成功 ======');
 
-    // 使用 return 确保函数在此处结束
     return res.json({
       success: true,
       url: imageUrl
@@ -59,7 +60,6 @@ export const uploadImage = async (req: Request, res: Response) => {
     console.error('====== 图片上传失败 ======');
     console.error('错误详情:', error);
     
-    // 如果响应已经发送，不再尝试发送错误响应
     if (!res.headersSent) {
       return res.status(500).json({
         success: false,
@@ -69,7 +69,6 @@ export const uploadImage = async (req: Request, res: Response) => {
   }
 };
 
-// 添加删除图片的控制器
 export const deleteImage = async (req: Request, res: Response) => {
   try {
     const imageUrl = req.body.url;
@@ -80,7 +79,6 @@ export const deleteImage = async (req: Request, res: Response) => {
       });
     }
 
-    // 从URL中提取文件名
     const filename = imageUrl.split('/').pop();
     if (!filename) {
       return res.status(400).json({
@@ -89,16 +87,22 @@ export const deleteImage = async (req: Request, res: Response) => {
       });
     }
 
-    const filePath = path.join(__dirname, '../../uploads', filename);
-
+    // 使用 SFTP 删除远程文件
+    const sftp = new Client();
+    await sftp.connect(sftpConfig);
+    
+    const remotePath = `/var/www/48cp/server/uploads/${filename}`;
+    
     // 检查文件是否存在
-    if (fs.existsSync(filePath)) {
-      // 删除文件
-      fs.unlinkSync(filePath);
-      console.log(`已删除文件: ${filePath}`);
+    const exists = await sftp.exists(remotePath);
+    if (exists) {
+      await sftp.delete(remotePath);
+      console.log(`已删除远程文件: ${remotePath}`);
     } else {
-      console.log(`文件不存在: ${filePath}`);
+      console.log(`远程文件不存在: ${remotePath}`);
     }
+    
+    await sftp.end();
 
     res.json({
       success: true,

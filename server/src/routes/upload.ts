@@ -1,3 +1,4 @@
+import 'dotenv/config';
 // 文件作用：处理文件上传相关的路由配置
 // 主要功能：
 // 1. 配置文件上传中间件
@@ -12,12 +13,32 @@ import multer from 'multer';
 import { uploadImage, deleteImage } from '../controllers/upload';
 import path from 'path';
 import fs from 'fs';
+import Client from 'ssh2-sftp-client';
 
+// 添加环境变量检查
+console.log('环境变量检查:', {
+  SFTP_HOST: process.env.SFTP_HOST,
+  SFTP_PORT: process.env.SFTP_PORT,
+  SFTP_USERNAME: process.env.SFTP_USERNAME,
+  // 不要打印密码
+});
+
+// SFTP 客户端配置
+const sftpConfig = {
+  host: process.env.SFTP_HOST,
+  port: Number(process.env.SFTP_PORT) || 22,
+  username: process.env.SFTP_USERNAME,
+  password: process.env.SFTP_PASSWORD
+};
 
 // 配置 multer 存储选项
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../../uploads');
+    const uploadDir = path.join(__dirname, '../../temp-uploads'); // 临时目录
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
     console.log('Multer destination:', uploadDir);
     console.log('File info:', file);
     cb(null, uploadDir);
@@ -91,12 +112,35 @@ router.post('/upload', async (req, res) => {
       });
     }
 
+    // 添加更详细的 SFTP 日志
+    console.log('开始 SFTP 连接，配置:', {
+      host: process.env.SFTP_HOST,
+      port: process.env.SFTP_PORT,
+      username: process.env.SFTP_USERNAME
+    });
+
+    const sftp = new Client();
+    await sftp.connect(sftpConfig);
+    console.log('SFTP 连接成功');
+    
+    const localPath = req.file.path;
+    const remotePath = `/var/www/48cp/server/uploads/${req.file.filename}`;
+    
+    console.log('准备上传文件:', {
+      localPath,
+      remotePath,
+      fileSize: req.file.size
+    });
+
+    await sftp.put(localPath, remotePath);
+    console.log('SFTP 上传完成');
+    
+    await sftp.end();
+    console.log('SFTP 连接已关闭');
+
     // 构建响应 URL
     const filename = req.file.filename;
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'http://8.218.98.220'
-      : 'http://localhost:3001';
-    const imageUrl = `${baseUrl}/uploads/${filename}`;
+    const imageUrl = `http://8.218.98.220/uploads/${filename}`;
 
     // 返回响应
     return res.json({
@@ -106,6 +150,13 @@ router.post('/upload', async (req, res) => {
 
   } catch (error) {
     console.error('Upload error:', error);
+    if (error instanceof Error) {
+      console.error('详细错误信息:', {
+        message: error.message,
+        code: (error as any).code,  // code 可能不存在于 Error 类型
+        stack: error.stack
+      });
+    }
     // 确保只发送一次错误响应
     if (!res.headersSent) {
       return res.status(500).json({

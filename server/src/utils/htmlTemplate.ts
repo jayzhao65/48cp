@@ -15,14 +15,17 @@ export const getReportTemplate = () => {
     return Handlebars.compile(template);
 };
 
-export const formatReportData = (reportContent: any, questionnaire: any) => {
-    // 读取并转换 logo 为 base64
+export const formatReportData = (reportContent: string, questionnaire: any) => {
+    // 读取资源文件（保持不变）
     const logoPath = path.join(__dirname, '../../assets/images/logo.png');
     const logoBase64 = fs.readFileSync(logoPath, { encoding: 'base64' });
 
-    // 读取 CSS 文件
+    // 读取 CSS 文件并添加调试日志
     const cssPath = path.join(__dirname, '../../assets/styles/report.css');
+    console.log('CSS 文件路径:', cssPath);
     const cssContent = fs.readFileSync(cssPath, 'utf-8');
+    console.log('CSS 内容长度:', cssContent.length);
+    console.log('CSS 内容前100个字符:', cssContent.substring(0, 100));
 
     // 读取字体文件
     const fontPath = path.join(__dirname, '../../assets/fonts/Huiwen_mingchao.otf');
@@ -34,32 +37,15 @@ export const formatReportData = (reportContent: any, questionnaire: any) => {
     // 添加背景模式
     const backgroundPattern = generateBackgroundPattern();
 
-    // 修改这一行，添加 Markdown 处理
-    const sections = reportContent.analysis.map((section: any) => {
-        // 确保 section 是字符串
-        const sectionStr = typeof section === 'string' ? section : JSON.stringify(section);
-        const titleMatch = sectionStr.match(/^(\d+\.\d+)\s+([^：\n]+)：/);
+    // 直接使用传入的 reportContent，因为它已经在 pdfGenerator 中被处理成了 HTML
+    const sections = reportContent.split('<h2>').slice(1).map(section => {
+        const titleEndIndex = section.indexOf('</h2>');
+        const title = section.slice(0, titleEndIndex);
+        const content = section.slice(titleEndIndex + 5);  // 5 是 '</h2>' 的长度
         
-        if (titleMatch) {
-            const [fullMatch, number, title] = titleMatch;
-            const content = sectionStr.slice(fullMatch.length).trim();
-            
-            return {
-                title: `${number} ${title}`,
-                content: marked(content, {
-                    breaks: true,
-                    gfm: true
-                })
-            };
-        }
-        
-        // 如果没有匹配到标题格式，整个内容作为 content
         return {
-            title: '',
-            content: marked(sectionStr, {
-                breaks: true,
-                gfm: true
-            })
+            title: title.trim(),
+            content: content.trim()
         };
     });
 
@@ -72,7 +58,7 @@ export const formatReportData = (reportContent: any, questionnaire: any) => {
         logoPath: `data:image/png;base64,${logoBase64}`,
         cssContent: cssContent,
         fontBase64: `data:font/otf;base64,${fontBase64}`,
-        sections: sections,  // 使用处理后的 sections
+        sections: sections,
         textureBase64: `data:image/svg+xml;base64,${textureBase64}`,
         backgroundPattern: generateBackgroundPattern(),
     };

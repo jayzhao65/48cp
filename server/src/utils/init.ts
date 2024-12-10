@@ -6,7 +6,6 @@ export const initializeDirectories = () => {
   
   // 确保 reports 目录存在
   if (!fs.existsSync(reportsDir)) {
-    console.log('Creating reports directory:', reportsDir);
     fs.mkdirSync(reportsDir, { recursive: true });
   }
 
@@ -15,6 +14,4 @@ export const initializeDirectories = () => {
   if (!fs.existsSync(gitkeepPath)) {
     fs.writeFileSync(gitkeepPath, '');
   }
-
-  console.log('Directories initialized successfully');
 }; 

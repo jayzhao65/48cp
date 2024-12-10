@@ -1,83 +1,26 @@
 import puppeteer from 'puppeteer-core';
 import path from 'path';
-import { getReportTemplate } from './htmlTemplate';
+import { getReportTemplate, formatReportData } from './htmlTemplate';
 import fs from 'fs';
 import { marked } from 'marked';
 
-export const generatePDFFromReport = async (reportContent: any, questionnaire: any) => {
+export const generatePDFFromReport = async (reportContent: string, questionnaire: any) => {
   console.log('开始处理报告内容');
 
-  let analysisContent;
   try {
-    const textContent = reportContent.toString();
+    // 解析 JSON 格式的报告内容
+    const reportSections = JSON.parse(reportContent);
     
-    // 查找 JSON 的实际开始和结束位置
-    const startIndex = textContent.indexOf('{');
-    const endIndex = textContent.lastIndexOf('}') + 1;
+    // 将报告内容转换为 markdown 格式
+    const markdownContent = reportSections.map((section: { title: string; content: string }) => {
+      return `## ${section.title}\n\n${section.content}`;
+    }).join('\n\n');
     
-    if (startIndex === -1 || endIndex <= startIndex) {
-      throw new Error('未找到有效的 JSON 数据');
-    }
+    // 使用 marked 将 markdown 转换为 HTML
+    const htmlContent = await marked(markdownContent);
     
-    // 只提取 JSON 部分
-    const jsonStr = textContent.substring(startIndex, endIndex);
-    const parsedContent = JSON.parse(jsonStr);
-    
-    // 验证并获取 analysis 数组
-    if (!parsedContent.analysis || !Array.isArray(parsedContent.analysis)) {
-      throw new Error('无效的报告格式：缺少 analysis 数组');
-    }
-
-    // 处理每个 section
-    analysisContent = parsedContent.analysis.map((section: any) => {
-      // 验证 section 格式
-      if (!section.title || !section.content) {
-        throw new Error('无效的 section 格式：缺少 title 或 content');
-      }
-
-      // 处理 content 中的 Markdown
-      const contentWithMarkdown = marked(section.content, {
-        breaks: true,
-        gfm: true
-      });
-
-      return {
-        title: section.title,
-        content: contentWithMarkdown
-      };
-    });
-
-    console.log('成功处理 Markdown 内容');
-  } catch (error) {
-    console.error('报告内容解析失败:', error);
-    throw error;
-  }
-
-  try {
     // 准备模板数据
-    const logoPath = path.join(__dirname, '../../assets/images/logo.png');
-    const logoBase64 = fs.readFileSync(logoPath, { encoding: 'base64' });
-
-    const cssPath = path.join(__dirname, '../../assets/styles/report.css');
-    const cssContent = fs.readFileSync(cssPath, 'utf-8');
-
-    // 读取字体文件并转换为 Base64
-    const fontPath = path.join(__dirname, '../../assets/fonts/Huiwen_mingchao.otf');
-    const fontBase64 = fs.readFileSync(fontPath, { encoding: 'base64' });
-
-    const templateData = {
-      name: questionnaire.name,
-      gender: questionnaire.gender === 'male' ? '男' : '女',
-      birthDate: questionnaire.birth_date,
-      location: questionnaire.location || '未填写',
-      generateTime: new Date().toLocaleString('zh-CN'),
-      sections: analysisContent,
-      logoPath: `data:image/png;base64,${logoBase64}`,
-      fontPath: `file://${path.join(__dirname, '../../assets/fonts/Huiwen_mingchao.otf').replace(/\\/g, '/')}`,
-      cssContent: cssContent,
-      fontBase64: `data:font/otf;base64,${fontBase64}`
-    };
-
+    const templateData = formatReportData(htmlContent, questionnaire);
     const template = getReportTemplate();
     const html = template(templateData);
     
@@ -98,16 +41,6 @@ export const generatePDFFromReport = async (reportContent: any, questionnaire: a
     const page = await browser.newPage();
     await page.setBypassCSP(true);
 
-    // 监听所有资源请求
-    //page.on('request', request => console.log('Request:', request.url()));
-    page.on('requestfailed', request => {
-      console.log(`❌ 资源加载失败: ${request.url()}`);
-    });
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        console.log('🚨 页面错误:', msg.text());
-      }
-    });
     
     // 设置视口大小
     await page.setViewport({
@@ -124,7 +57,7 @@ export const generatePDFFromReport = async (reportContent: any, questionnaire: a
     
     // 直接注入CSS内容
     await page.addStyleTag({
-      content: cssContent
+      content: templateData.cssContent
     });
 
     // 注入字体
@@ -142,7 +75,6 @@ export const generatePDFFromReport = async (reportContent: any, questionnaire: a
     // 等待字体加载
     await page.evaluate(() => {
       document.fonts.ready.then(() => {
-        console.log('Fonts have loaded!');
       });
     });
 
@@ -155,14 +87,42 @@ export const generatePDFFromReport = async (reportContent: any, questionnaire: a
       fullPage: true
     });
 
+    // 在生成 PDF 之前添加调试代码（在 page.pdf 之前）
+    const styles = await page.evaluate(() => {
+      const bodyStyles = window.getComputedStyle(document.body);
+      const sectionContent = document.querySelector('.section-content');
+      const sectionStyles = sectionContent ? window.getComputedStyle(sectionContent) : null;
+
+      return {
+        body: {
+          margin: bodyStyles.margin,
+          padding: bodyStyles.padding,
+          fontSize: bodyStyles.fontSize,
+          background: bodyStyles.background
+        },
+        sectionContent: sectionStyles ? {
+          width: sectionStyles.width,
+          margin: sectionStyles.margin,
+          padding: sectionStyles.padding,
+          fontSize: sectionStyles.fontSize,
+          textAlign: sectionStyles.textAlign,
+          lineHeight: sectionStyles.lineHeight
+        } : null,
+        printMediaQuery: window.matchMedia('print').matches
+      };
+    });
+
+    console.log('Styles:', styles);
+
     // 生成 PDF
+    await page.emulateMediaType('print');
     const pdf = await page.pdf({
       format: 'A4',
       margin: {
         top: '15mm',
-        right: '15mm',
+        right: '10mm',
         bottom: '15mm',
-        left: '15mm'
+        left: '10mm'
       },
       printBackground: true,
       displayHeaderFooter: true,
