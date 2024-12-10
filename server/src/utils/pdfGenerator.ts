@@ -17,7 +17,7 @@ const getChromeExecutablePath = () => {
 
 export const generatePDFFromReport = async (reportContent: string, questionnaire: any) => {
   console.log('开始处理报告内容');
-
+  let browser;
   try {
     // 新增：提取JSON内容的函数
     const extractJSON = (str: string) => {
@@ -49,7 +49,7 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
     console.log('Chrome 路径:', getChromeExecutablePath());
     
     console.log('启动 Puppeteer 浏览器');
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
       channel: 'chrome',
       executablePath: getChromeExecutablePath(),
@@ -169,14 +169,19 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         `
       });
 
+      console.log('PDF 生成成功');
       return {
         buffer: pdf,
       };
+    } catch (error) {
+      console.error('Error during PDF generation:', error);
+      throw error;
     } finally {
-      // 确保浏览器实例被关闭
-      console.log('正在关闭浏览器实例');
-      await browser.close();
-      console.log('浏览器实例已关闭');
+      if (browser) {
+        console.log('正在关闭浏览器实例');
+        await browser.close();
+        console.log('浏览器实例已关闭');
+      }
     }
   } catch (error) {
     console.error('PDF generation error:', error);
