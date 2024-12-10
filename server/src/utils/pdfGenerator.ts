@@ -46,6 +46,8 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
     const html = template(templateData);
     
     // 使用 Puppeteer 生成 PDF
+    console.log('Chrome 路径:', getChromeExecutablePath());
+    
     const browser = await puppeteer.launch({
       headless: true,
       channel: 'chrome',
@@ -57,7 +59,16 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         '--allow-file-access-from-files',
         '--disable-web-security'
       ]
+    }).catch(error => {
+      console.error('Puppeteer 启动错误:', error);
+      console.error('详细错误信息:', error.message);
+      if (error.stack) {
+        console.error('错误堆栈:', error.stack);
+      }
+      throw error;
     });
+
+    console.log('浏览器启动成功');
     
     const page = await browser.newPage();
     await page.setBypassCSP(true);
@@ -126,8 +137,6 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         printMediaQuery: window.matchMedia('print').matches
       };
     });
-
-    console.log('Styles:', styles);
 
     // 生成 PDF
     await page.emulateMediaType('print');
