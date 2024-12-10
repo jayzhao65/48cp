@@ -88,6 +88,10 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
       });
 
       // 注入字体
+      console.log('字体文件路径:', templateData.fontBase64);  // 检查字体路径
+
+      // 在注入字体之前添加日志
+      console.log('准备注入字体样式');
       await page.addStyleTag({
         content: `
           @font-face {
@@ -97,6 +101,17 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
             font-style: normal;
           }
         `
+      });
+
+      // 添加字体加载状态检查
+      await page.evaluate(() => {
+        console.log('开始检查字体加载状态');
+        return document.fonts.ready.then(() => {
+          const fonts = document.fonts;
+          console.log('已加载的字体:', Array.from(fonts.values()).map(f => f.family));
+          console.log('字体加载状态:', fonts.status);
+          return fonts.status;
+        });
       });
 
       console.log('等待字体加载');

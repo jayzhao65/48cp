@@ -22,10 +22,7 @@ export const formatReportData = (reportContent: string, questionnaire: any) => {
 
     // 读取 CSS 文件并添加调试日志
     const cssPath = path.join(__dirname, '../../assets/styles/report.css');
-    console.log('CSS 文件路径:', cssPath);
     const cssContent = fs.readFileSync(cssPath, 'utf-8');
-    console.log('CSS 内容长度:', cssContent.length);
-    console.log('CSS 内容前100个字符:', cssContent.substring(0, 100));
 
     // 读取字体文件
     const fontPath = path.join(__dirname, '../../assets/fonts/Huiwen_mingchao.otf');
