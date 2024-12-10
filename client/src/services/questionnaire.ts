@@ -57,6 +57,11 @@ export interface UserData {
     };
     generated_at: string;
     generation_count: number;
+    pdf_url?: string;
+    pdf_reports?: Array<{
+      url: string;
+      generated_at: string;
+    }>;
   };
   matched_with?: string;
   matched_at?: string;
@@ -151,7 +156,13 @@ export const questionnaireApi = {
         throw new Error(response.data.error || 'PDF生成失败');
       }
       
-      return response.data;
+      // 确保返回完整的响应数据，包括 pdf_url
+      return {
+        success: true,
+        data: response.data.data,    // 用户数据
+        pdf_url: response.data.pdf_url  // PDF URL
+      };
+      
     } catch (error: any) {
       // 详细的错误处理
       const errorMessage = error.response?.data?.error || 

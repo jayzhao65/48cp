@@ -59,3 +59,18 @@ interface CozeRetrieveResponse {
   };
   msg: string;
 }
+
+interface PDFReport {
+  url: string;
+  generated_at: string;
+}
+
+interface PersonalityReport {
+  content?: {
+    raw_response?: string;
+  };
+  generated_at: string;
+  generation_count: number;
+  pdf_reports?: PDFReport[];
+  pdf_path?: string;
+}

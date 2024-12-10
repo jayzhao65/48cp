@@ -32,6 +32,10 @@ interface IPersonalityReport {
     raw_response?: string;
   };
   pdf_path?: string;
+  pdf_reports?: Array<{
+    url: string;
+    generated_at: Date;
+  }>;
   generated_at: Date;
   generation_count: number;
 }
@@ -91,6 +95,11 @@ const questionnaireSchema = new Schema({
   },
   personality_report: {
     content: { type: Object },
+    pdf_path: { type: String },
+    pdf_reports: [{
+      url: { type: String },
+      generated_at: { type: Date }
+    }],
     generated_at: { type: Date },
     generation_count: { type: Number, default: 0 }
   },

@@ -8,8 +8,19 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
   console.log('开始处理报告内容');
 
   try {
-    // 解析 JSON 格式的报告内容
-    const reportSections = JSON.parse(reportContent);
+    // 新增：提取JSON内容的函数
+    const extractJSON = (str: string) => {
+      try {
+        const matches = str.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+        return matches ? matches[0] : str;
+      } catch (error) {
+        return str;
+      }
+    };
+
+    // 在JSON.parse之前先提取JSON内容
+    const jsonContent = extractJSON(reportContent);
+    const reportSections = JSON.parse(jsonContent);
     
     // 将报告内容转换为 markdown 格式
     const markdownContent = reportSections.map((section: { title: string; content: string }) => {
@@ -137,27 +148,9 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
 
     await browser.close();
     
-    // 创建保存目录（如果不存在）
-    const reportsDir = path.join(__dirname, '../../public/reports');
-    if (!fs.existsSync(reportsDir)) {
-      fs.mkdirSync(reportsDir, { recursive: true });
-    }
-
-    // 生成文件名（使用时间戳和用户名）
-    const timestamp = new Date().getTime();
-    const fileName = `${questionnaire.name}_${timestamp}.pdf`;
-    const filePath = path.join(reportsDir, fileName);
-
-    // 保存 PDF 文件
-    fs.writeFileSync(filePath, pdf);
-    
-    console.log('PDF generation completed and saved to:', filePath);
-    
-    // 返回文件信息
+    // 直接返回 buffer，删除保存文件的代码
     return {
-      buffer: pdf,           // 原始 buffer（如果其他地方需要）
-      fileName: fileName,    // 文件名
-      filePath: filePath    // 完整路径
+      buffer: pdf,
     };
 
   } catch (error) {

@@ -381,40 +381,42 @@ export const handlePDFGeneration = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: '请先生成性格报告' });
     }
 
-    // 3. 删除旧的 PDF 文件（如果存在）
-    if (questionnaire.personality_report.pdf_path) {
-      const oldFilePath = path.join(reportsDir, questionnaire.personality_report.pdf_path);
-      try {
-        await fs.promises.unlink(oldFilePath);
-        console.log('已删除旧的PDF文件:', oldFilePath);
-      } catch (error) {
-        console.warn('删除旧PDF文件失败:', error);
-      }
-    }
-
-    // 4. 直接使用原始响应
+    // 3. 直接使用原始响应
     const reportContent = questionnaire.personality_report.content.raw_response;
 
-    // 不需要在这里进行 JSON 解析
-    // 直接将原始响应传递给 PDF 生成器
-
-    // 5. 生成 PDF
+    // 4. 生成 PDF
     const pdfResult = await generatePDFFromReport(reportContent, questionnaire);
     const pdfBuffer = Buffer.from(pdfResult.buffer);
 
-    // 6. 保存 PDF 文件
+    // 5. 保存 PDF 文件
     const fileName = `report_${id}_${Date.now()}.pdf`;
     const filePath = path.join(reportsDir, fileName);
     await fs.promises.writeFile(filePath, pdfBuffer);
 
-    // 7. 更新数据库中的 PDF 路径
+    // 6. 构建完整的 PDF URL
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const pdfUrl = `${baseUrl}/reports/${fileName}`;
+
+    // 7. 更新数据库中的信息
+    if (!questionnaire.personality_report.pdf_reports) {
+      questionnaire.personality_report.pdf_reports = [];
+    }
+
+    // 添加新的 PDF 信息到数组开头
+    questionnaire.personality_report.pdf_reports.unshift({
+      url: pdfUrl,
+      generated_at: new Date()
+    });
+
+    // 保持向后兼容
     questionnaire.personality_report.pdf_path = fileName;
+    
     await questionnaire.save();
 
     res.json({ 
       success: true, 
       data: questionnaire,
-      pdf_url: `/reports/${fileName}` // 添加 PDF 下载链接
+      pdf_url: pdfUrl
     });
 
   } catch (error: any) {
@@ -541,6 +543,12 @@ const callCozeAPI = async (userInfo: UserInfo): Promise<string> => {
 
         console.log('Retrieve 响应:', JSON.stringify(retrieveResponse.data, null, 2));
 
+        // 检查失败状态，如果失败立即抛出错误
+        if (retrieveResponse.data?.data?.status === 'failed') {
+          throw new Error(`Coze API 处理失败: ${retrieveResponse.data?.data?.error || '未知错误'}`);
+        }
+
+        // 检查完成状态
         if (retrieveResponse.data?.data?.status === 'completed') {
           break;
         }
@@ -552,6 +560,11 @@ const callCozeAPI = async (userInfo: UserInfo): Promise<string> => {
           throw new Error('等待 Coze API 响应超时');
         }
       } catch (error) {
+        // 如果是我们主动抛出的错误（状态为 failed），直接向上传播
+        if (error instanceof Error && error.message.includes('Coze API 处理失败')) {
+          throw error;
+        }
+        
         console.error('检查聊天状态失败:', error);
         await new Promise(resolve => setTimeout(resolve, 2000));
         retryCount++;

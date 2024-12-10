@@ -20,6 +20,7 @@
     "@types/node": "^20.11.0",
     "@types/pdfkit": "^0.13.6",
     "@types/puppeteer": "^5.4.7",
+    "browser-image-compression": "^2.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.18.2",

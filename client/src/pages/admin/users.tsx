@@ -25,12 +25,17 @@ export interface UserData {
   phone: string;        // 手机号
   self_intro: string;   // 自我介绍
   images: string[];     // 用户上传的图片数组
-  personality_report?: {  // 性格报告（可选）
+  personality_report?: {
     content?: {
       raw_response?: string;
     };
-    generated_at: string; // 报告生成时间
-    generation_count: number; // 报告生成次数
+    generated_at: string;
+    generation_count: number;
+    pdf_url?: string;
+    pdf_reports?: Array<{
+      url: string;
+      generated_at: string;
+    }>;
   };
   matched_with?: string;    // 匹配的用户ID
   matched_at?: string;      // 匹配时间
@@ -197,16 +202,25 @@ export default function Users() {
     }
   };
 
-  // 添加生成 PDF 的处理函数
+  // 修改 handleGeneratePDF 函数
   const handleGeneratePDF = async () => {
     if (!selectedUser) return;
     setPdfLoading(true);
     try {
       const result = await questionnaireApi.generatePDF(selectedUser._id);
+      console.log('PDF generation result:', result);  // 添加这行来查看返回数据
       if (result.success) {
+        // 更新用户数据，包括新的 PDF URL
+        const updatedUser = {
+          ...result.data,
+          personality_report: {
+            ...result.data.personality_report,
+            pdf_url: result.pdf_url  // 保存返回的 PDF URL
+          }
+        };
+        setSelectedUser(updatedUser);
         message.success('PDF生成成功');
-        setSelectedUser(result.data);
-        fetchAllUsers();
+        fetchAllUsers();  // 刷新用户列表
       }
     } catch (error) {
       console.error('生成PDF失败:', error);

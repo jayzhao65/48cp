@@ -20,11 +20,6 @@ export const PersonalityReport: React.FC<PersonalityReportProps> = ({
 }) => {
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
-  const handleRegenerateConfirm = () => {
-    setIsConfirmModalVisible(false);
-    onGenerate();
-  };
-
   const handleRegenerateClick = () => {
     if (user.personality_report?.content?.raw_response) {
       setIsConfirmModalVisible(true);
@@ -49,7 +44,7 @@ export const PersonalityReport: React.FC<PersonalityReportProps> = ({
             type="primary" 
             onClick={onGeneratePDF} 
             loading={pdfLoading}
-            disabled={pdfLoading}
+            disabled={!user.personality_report?.content?.raw_response}
           >
             生成 PDF 报告
           </Button>
@@ -59,7 +54,10 @@ export const PersonalityReport: React.FC<PersonalityReportProps> = ({
       <Modal
         title="重新生成报告"
         open={isConfirmModalVisible}
-        onOk={handleRegenerateConfirm}
+        onOk={() => {
+          setIsConfirmModalVisible(false);
+          onGenerate();
+        }}
         onCancel={() => setIsConfirmModalVisible(false)}
         okText="确认重新生成"
         cancelText="取消"
@@ -84,6 +82,26 @@ export const PersonalityReport: React.FC<PersonalityReportProps> = ({
               {user.personality_report.content.raw_response}
             </div>
           </div>
+          
+          {/* 修改 PDF 链接区域 */}
+          {user.personality_report?.pdf_reports && user.personality_report.pdf_reports.length > 0 && (
+            <div className={commonStyles.pdfSection}>
+              <h4>PDF 报告列表</h4>
+              <div className={commonStyles.pdfList}>
+                {user.personality_report.pdf_reports.map((report, index) => (
+                  <div key={index} className={commonStyles.pdfItem}>
+                    <a 
+                      href={report.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      {new Date(report.generated_at).toLocaleString()}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>

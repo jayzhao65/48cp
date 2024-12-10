@@ -43,59 +43,214 @@ export const generateTask = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: 'CP不存在' });
     }
 
-    // 构建提示词
-    const prompt = `
-      请为以下两位用户生成一个有趣的约会任务：
-      用户1：${(couple.user1 as any).name}
-      性别：${(couple.user1 as any).gender === 'male' ? '男' : '女'}
-      年龄：${(couple.user1 as any).age}
-      职业：${(couple.user1 as any).occupation}
-      
-      用户2：${(couple.user2 as any).name}
-      性别：${(couple.user2 as any).gender === 'male' ? '男' : '女'}
-      年龄：${(couple.user2 as any).age}
-      职业：${(couple.user2 as any).occupation}
-      
-      请生成一个JSON格式的任务，包含以下字段：
-      1. title: 任务标题
-      2. description: 任务描述
-      3. steps: 任务步骤（数组）
-      4. tips: 注意事项（数组）
-      5. expectedDuration: 预计时长（小时）
-    `;
-
-    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: "anthropic/claude-3-sonnet",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" }
-    }, {
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'http://localhost:3001',
-        'X-Title': 'CP Task Generator'
-      }
+    // 构建消息内容
+    const messageContent = [];
+    
+    // 第一个用户的信息
+    messageContent.push({ 
+      type: "text", 
+      text: "第一人基本信息及社交媒体截图" 
+    });
+    
+    // 第一个用户的照片
+    if ((couple.user1 as any).images?.length > 0) {
+      (couple.user1 as any).images.forEach((imageUrl: string) => {
+        messageContent.push({
+          type: "image",
+          file_url: imageUrl
+        });
+      });
+    }
+    
+    // 第一个用户的基本信息
+    messageContent.push({
+      type: "text",
+      text: JSON.stringify({
+        name: (couple.user1 as any).name,
+        gender: (couple.user1 as any).gender === 'male' ? '男' : '女',
+        birth_date: (couple.user1 as any).birth_date,
+        zodiac: (couple.user1 as any).zodiac,
+        mbti: (couple.user1 as any).mbti,
+        occupation: (couple.user1 as any).occupation,
+        self_intro: (couple.user1 as any).self_intro
+      })
     });
 
-    const taskContent = JSON.parse((response.data as AIResponse).choices[0].message.content);
+    // 第二个用户的信息（格式同上）
+    messageContent.push({ 
+      type: "text", 
+      text: "第二人基本信息及社交媒体截图" 
+    });
+    
+    if ((couple.user2 as any).images?.length > 0) {
+      (couple.user2 as any).images.forEach((imageUrl: string) => {
+        messageContent.push({
+          type: "image",
+          file_url: imageUrl
+        });
+      });
+    }
+    
+    messageContent.push({
+      type: "text",
+      text: JSON.stringify({
+        name: (couple.user2 as any).name,
+        gender: (couple.user2 as any).gender === 'male' ? '男' : '女',
+        birth_date: (couple.user2 as any).birth_date,
+        zodiac: (couple.user2 as any).zodiac,
+        mbti: (couple.user2 as any).mbti,
+        occupation: (couple.user2 as any).occupation,
+        self_intro: (couple.user2 as any).self_intro
+      })
+    });
 
+    const requestBody = {
+      bot_id: process.env.COZE_COUPLE_BOT_ID,
+      user_id: "123456789",
+      stream: false,
+      auto_save_history: true,
+      additional_messages: [{
+        role: "user",
+        content: JSON.stringify(messageContent),
+        content_type: "object_string"
+      }]
+    };
 
-    // 确保解析后的数据包含所有必需字段
-    if (!taskContent.title || !taskContent.description || !taskContent.steps || 
-        !taskContent.tips || !taskContent.expectedDuration) {
-      throw new Error('Invalid task content format');
+    // 添加详细的日志
+    console.log('Coze API 请求详情:', JSON.stringify({
+      url: 'https://api.coze.com/v3/chat',
+      headers: {
+        'Authorization': 'Bearer ***',
+        'Content-Type': 'application/json'
+      },
+      requestBody: requestBody,
+      rawMessageContent: messageContent
+    }, null, 2));
+
+    // 调用 Coze API
+    const initialResponse = await axios.post(
+      'https://api.coze.com/v3/chat',
+      requestBody,
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.COZE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+
+    // 添加响应日志
+    console.log('Coze API 响应:', JSON.stringify(initialResponse.data, null, 2));
+
+    const chat_id = initialResponse.data.data.id;
+    const conversation_id = initialResponse.data.data.conversation_id;
+
+    if (!chat_id || !conversation_id) {
+      throw new Error('Missing chat_id or conversation_id in response');
     }
 
+    // 状态轮询
+    let retryCount = 0;
+    const maxRetries = 40;
+    let finalContent = '';
+
+    // 轮询 retrieve 接口检查状态
+    while (retryCount < maxRetries) {
+      try {
+        const retrieveResponse = await axios.get(
+          'https://api.coze.com/v3/chat/retrieve',
+          {
+            params: { chat_id, conversation_id },
+            headers: {
+              'Authorization': `Bearer ${process.env.COZE_API_KEY}`
+            }
+          }
+        );
+
+        console.log('Retrieve 完整响应:', JSON.stringify(retrieveResponse.data, null, 2));
+
+        if (retrieveResponse.data?.data?.status === 'failed') {
+          console.error('失败详情:', {
+            status: retrieveResponse.data?.data?.status,
+            error: retrieveResponse.data?.data?.last_error,
+            fullResponse: retrieveResponse.data
+          });
+          throw new Error(`Coze API 处理失败: ${
+            retrieveResponse.data?.data?.last_error?.msg || 
+            retrieveResponse.data?.data?.error || 
+            '未知错误'
+          }`);
+        }
+
+        if (retrieveResponse.data?.data?.status === 'completed') {
+          console.log('状态为completed，准备调用 message/list 接口');
+          
+          // 调用 message/list 接口
+          const messagesResponse = await axios.get(
+            'https://api.coze.com/v3/chat/message/list',
+            {
+              params: { chat_id, conversation_id },
+              headers: {
+                'Authorization': `Bearer ${process.env.COZE_API_KEY}`
+              }
+            }
+          );
+
+          console.log('message/list 接口响应:', JSON.stringify(messagesResponse.data, null, 2));
+
+          const messages = messagesResponse.data.data;
+          const answerMessage = messages.find((msg: any) => 
+            msg.type === 'answer' && 
+            msg.content_type === 'text' &&
+            msg.content && 
+            !msg.content.includes('generate_answer_finish')
+          );
+
+          console.log('找到的答案消息:', answerMessage);
+
+          if (answerMessage) {
+            finalContent = answerMessage.content;
+            console.log('设置 finalContent:', finalContent);
+            break;
+          } else {
+            console.log('未找到符合条件的答案消息');
+          }
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        retryCount++;
+      } catch (error: any) {
+        console.error('检查聊天状态失败:', {
+          error: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          fullError: error
+        });
+        throw error;
+      }
+    }
+
+    // 如果达到最大重试次数仍未成功，抛出错误
+    if (retryCount >= maxRetries) {
+      throw new Error('等待 Coze API 响应超时');
+    }
+
+    // 在保存前后添加日志
+    console.log('准备保存任务，当前数据:', {
+      content: finalContent,
+      generatedAt: new Date(),
+      generationCount: (couple.task?.generationCount || 0) + 1
+    });
+
     couple.task = {
-      content: taskContent,
+      content: finalContent,
       generatedAt: new Date(),
       generationCount: (couple.task?.generationCount || 0) + 1
     };
 
     await couple.save();
-
-    // 在返回之前确保数据被正确填充
-    await couple.populate('user1');
-    await couple.populate('user2');
+    console.log('任务保存完成，更新后的couple:', couple);
 
     res.json({ success: true, data: couple });
   } catch (error) {

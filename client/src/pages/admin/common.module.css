@@ -181,4 +181,39 @@
   background-color: #fff0f6;
   color: #c41d7f;
   border: 1px solid #ffadd2;
+}
+
+.pdfSection {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.pdfLink {
+  color: #1890ff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdfLink:hover {
+  text-decoration: underline;
+}
+
+.pdfList {
+  margin-top: 10px;
+}
+
+.pdfItem {
+  margin: 8px 0;
+}
+
+.pdfItem a {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.pdfItem a:hover {
+  text-decoration: underline;
 } 

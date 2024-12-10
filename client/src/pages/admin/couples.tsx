@@ -12,13 +12,7 @@ interface CoupleData {
   user2: UserData;
   matchedAt: string;
   task?: {
-    content: {
-      title: string;
-      description: string;
-      steps: string[];
-      tips: string[];
-      expectedDuration: number;
-    };
+    content: string;
     generatedAt: string;
     generationCount: number;
   } | null;
@@ -225,24 +219,7 @@ export default function Couples() {
                       <span>生成次数：{selectedCouple.task.generationCount}</span>
                     </div>
                     <div className={styles.taskDetails}>
-                      <h3>{selectedCouple.task.content.title}</h3>
-                      <p>{selectedCouple.task.content.description}</p>
-                      
-                      <h4>任务步骤：</h4>
-                      <ul>
-                        {selectedCouple.task.content.steps.map((step, index) => (
-                          <li key={index}>{step}</li>
-                        ))}
-                      </ul>
-                      
-                      <h4>注意事项：</h4>
-                      <ul>
-                        {selectedCouple.task.content.tips.map((tip, index) => (
-                          <li key={index}>{tip}</li>
-                        ))}
-                      </ul>
-                      
-                      <p>预计时长：{selectedCouple.task.content.expectedDuration}小时</p>
+                      <pre>{selectedCouple.task.content}</pre>
                     </div>
                   </div>
                 )}
