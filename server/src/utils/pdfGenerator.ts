@@ -3,6 +3,7 @@ import path from 'path';
 import { getReportTemplate, formatReportData } from './htmlTemplate';
 import fs from 'fs';
 import { marked } from 'marked';
+const templatePath = path.join(__dirname, '../../templates/report.html');
 
 export const generatePDFFromReport = async (reportContent: string, questionnaire: any) => {
   console.log('开始处理报告内容');
