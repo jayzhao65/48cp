@@ -54,7 +54,7 @@ app.use(express.json());
 
 // 添加静态文件服务
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-app.use('/reports', express.static(path.join(__dirname, 'public/reports')));
+app.use('/reports', express.static(path.join(__dirname, '../public/reports')));
 // 设置路由
 // 将所有以 '/api' 开头的请求转发到 questionnaireRoutes 处理
 // 例如：/api/questionnaires 会被转发到问卷相关的处理函数

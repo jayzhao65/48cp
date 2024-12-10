@@ -82,14 +82,7 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         timeout: 90000
       });
       
-      console.log('注入 CSS 和字体');
-      await page.addStyleTag({
-        content: templateData.cssContent
-      });
-
       // 注入字体
-      console.log('字体文件路径:', templateData.fontBase64);  // 检查字体路径
-
       // 在注入字体之前添加日志
       console.log('准备注入字体样式');
       await page.addStyleTag({
