@@ -59,113 +59,109 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         '--allow-file-access-from-files',
         '--disable-web-security'
       ]
-    }).catch(error => {
-      console.error('Puppeteer 启动错误:', error);
-      console.error('详细错误信息:', error.message);
-      if (error.stack) {
-        console.error('错误堆栈:', error.stack);
-      }
-      throw error;
     });
 
-    console.log('浏览器启动成功');
-    
-    const page = await browser.newPage();
-    await page.setBypassCSP(true);
+    try {
+      console.log('浏览器启动成功');
+      
+      const page = await browser.newPage();
+      await page.setBypassCSP(true);
 
-    
-    // 设置视口大小
-    await page.setViewport({
-      width: 1200,
-      height: 1600,
-      deviceScaleFactor: 2
-    });
-
-    // 设置内容并等待加载
-    await page.setContent(html, {
-      waitUntil: ['load', 'networkidle0'],
-      timeout: 30000
-    });
-    
-    // 直接注入CSS内容
-    await page.addStyleTag({
-      content: templateData.cssContent
-    });
-
-    // 注入字体
-    await page.addStyleTag({
-      content: `
-        @font-face {
-          font-family: 'Huiwen_mingchao';
-          src: url('${templateData.fontBase64}') format('opentype');
-          font-weight: normal;
-          font-style: normal;
-        }
-      `
-    });
-
-    // 等待字体加载
-    await page.evaluate(() => {
-      document.fonts.ready.then(() => {
+      
+      // 设置视口大小
+      await page.setViewport({
+        width: 1200,
+        height: 1600,
+        deviceScaleFactor: 2
       });
-    });
 
-    // 给字体加载一些时间
-    await new Promise(resolve => setTimeout(resolve, 1000));
+      // 设置内容并等待加载
+      await page.setContent(html, {
+        waitUntil: ['load', 'networkidle0'],
+        timeout: 30000
+      });
+      
+      // 直接注入CSS内容
+      await page.addStyleTag({
+        content: templateData.cssContent
+      });
 
-    // 在生成 PDF 之前添加调试代码（在 page.pdf 之前）
-    const styles = await page.evaluate(() => {
-      const bodyStyles = window.getComputedStyle(document.body);
-      const sectionContent = document.querySelector('.section-content');
-      const sectionStyles = sectionContent ? window.getComputedStyle(sectionContent) : null;
+      // 注入字体
+      await page.addStyleTag({
+        content: `
+          @font-face {
+            font-family: 'Huiwen_mingchao';
+            src: url('${templateData.fontBase64}') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+          }
+        `
+      });
+
+      // 等待字体加载
+      await page.evaluate(() => {
+        document.fonts.ready.then(() => {
+        });
+      });
+
+      // 给字体加载一些时间
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // 在生成 PDF 之前添加调试代码（在 page.pdf 之前）
+      const styles = await page.evaluate(() => {
+        const bodyStyles = window.getComputedStyle(document.body);
+        const sectionContent = document.querySelector('.section-content');
+        const sectionStyles = sectionContent ? window.getComputedStyle(sectionContent) : null;
+
+        return {
+          body: {
+            margin: bodyStyles.margin,
+            padding: bodyStyles.padding,
+            fontSize: bodyStyles.fontSize,
+            background: bodyStyles.background
+          },
+          sectionContent: sectionStyles ? {
+            width: sectionStyles.width,
+            margin: sectionStyles.margin,
+            padding: sectionStyles.padding,
+            fontSize: sectionStyles.fontSize,
+            textAlign: sectionStyles.textAlign,
+            lineHeight: sectionStyles.lineHeight
+          } : null,
+          printMediaQuery: window.matchMedia('print').matches
+        };
+      });
+
+      // 生成 PDF
+      await page.emulateMediaType('print');
+      const pdf = await page.pdf({
+        format: 'A4',
+        margin: {
+          top: '15mm',
+          right: '10mm',
+          bottom: '15mm',
+          left: '10mm'
+        },
+        printBackground: true,
+        displayHeaderFooter: true,
+        headerTemplate: '<div></div>',
+        footerTemplate: `
+          <div style="font-size: 10px; padding: 0 15mm; width: 100%; text-align: center; color: #666;">
+            <span>© Crush & Beyond - 让爱更有见地</span>
+            <span style="margin-left: 20px;">第 <span class="pageNumber"></span> 页</span>
+          </div>
+        `
+      });
 
       return {
-        body: {
-          margin: bodyStyles.margin,
-          padding: bodyStyles.padding,
-          fontSize: bodyStyles.fontSize,
-          background: bodyStyles.background
-        },
-        sectionContent: sectionStyles ? {
-          width: sectionStyles.width,
-          margin: sectionStyles.margin,
-          padding: sectionStyles.padding,
-          fontSize: sectionStyles.fontSize,
-          textAlign: sectionStyles.textAlign,
-          lineHeight: sectionStyles.lineHeight
-        } : null,
-        printMediaQuery: window.matchMedia('print').matches
+        buffer: pdf,
       };
-    });
-
-    // 生成 PDF
-    await page.emulateMediaType('print');
-    const pdf = await page.pdf({
-      format: 'A4',
-      margin: {
-        top: '15mm',
-        right: '10mm',
-        bottom: '15mm',
-        left: '10mm'
-      },
-      printBackground: true,
-      displayHeaderFooter: true,
-      headerTemplate: '<div></div>',
-      footerTemplate: `
-        <div style="font-size: 10px; padding: 0 15mm; width: 100%; text-align: center; color: #666;">
-          <span>© Crush & Beyond - 让爱更有见地</span>
-          <span style="margin-left: 20px;">第 <span class="pageNumber"></span> 页</span>
-        </div>
-      `
-    });
-
-    await browser.close();
-    
-    // 直接返回 buffer，删除保存文件的代码
-    return {
-      buffer: pdf,
-    };
-
+    } finally {
+      // 确保浏览器实例被关闭
+      console.log('正在关闭浏览器实例');
+      await browser.close();
+      console.log('浏览器实例已关闭');
+    }
   } catch (error) {
     console.error('PDF generation error:', error);
     throw error;
