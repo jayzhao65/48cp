@@ -32,12 +32,12 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
     const jsonContent = extractJSON(reportContent);
     const reportSections = JSON.parse(jsonContent);
     
-    // 将报告内容转换为 markdown 格式
+    console.log('开始转换为 Markdown');
     const markdownContent = reportSections.map((section: { title: string; content: string }) => {
       return `## ${section.title}\n\n${section.content}`;
     }).join('\n\n');
-    
-    // 使用 marked 将 markdown 转换为 HTML
+
+    console.log('开始转换为 HTML');
     const htmlContent = await marked(markdownContent);
     
     // 准备模板数据
@@ -48,6 +48,7 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
     // 使用 Puppeteer 生成 PDF
     console.log('Chrome 路径:', getChromeExecutablePath());
     
+    console.log('启动 Puppeteer 浏览器');
     const browser = await puppeteer.launch({
       headless: true,
       channel: 'chrome',
@@ -65,7 +66,7 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
       console.log('浏览器启动成功');
       
       const page = await browser.newPage();
-      await page.setBypassCSP(true);
+      console.log('新页面已创建');
 
       
       // 设置视口大小
@@ -75,13 +76,13 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         deviceScaleFactor: 2
       });
 
-      // 设置内容并等待加载
+      console.log('设置页面内容');
       await page.setContent(html, {
         waitUntil: ['load', 'networkidle0'],
-        timeout: 30000
+        timeout: 60000
       });
       
-      // 直接注入CSS内容
+      console.log('注入 CSS 和字体');
       await page.addStyleTag({
         content: templateData.cssContent
       });
@@ -98,7 +99,7 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         `
       });
 
-      // 等待字体加载
+      console.log('等待字体加载');
       await page.evaluate(() => {
         document.fonts.ready.then(() => {
         });
