@@ -5,6 +5,16 @@ import fs from 'fs';
 import { marked } from 'marked';
 const templatePath = path.join(__dirname, '../../templates/report.html');
 
+const getChromeExecutablePath = () => {
+  // 开发环境 Mac
+  if (process.env.NODE_ENV === 'development') {
+    return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+  }
+  
+  // 生产环境 Linux
+  return process.env.CHROME_PATH || '/usr/bin/google-chrome';
+};
+
 export const generatePDFFromReport = async (reportContent: string, questionnaire: any) => {
   console.log('开始处理报告内容');
 
@@ -18,7 +28,6 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         return str;
       }
     };
-
     // 在JSON.parse之前先提取JSON内容
     const jsonContent = extractJSON(reportContent);
     const reportSections = JSON.parse(jsonContent);
@@ -40,7 +49,7 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
     const browser = await puppeteer.launch({
       headless: true,
       channel: 'chrome',
-      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      executablePath: getChromeExecutablePath(),
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
