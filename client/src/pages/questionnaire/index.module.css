@@ -1,28 +1,38 @@
 /* pages/questionnaire/index.module.css */
 .container {
+  background-color: #FFF5EE;
   min-height: 100vh;
-  background-color: #f8f9fc;
-  padding: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  padding: 20px;
 }
 
 .formContainer {
-  width: 100%;
-  max-width: 350px;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
   margin: 0 auto;
+  max-width: 800px;
+  position: relative;
+}
+
+.formContainer::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right,
+    #00A76F 33.33%,
+    #FF6B6B 33.33% 66.66%,
+    #FFB547 66.66%
+  );
 }
 
 .header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem 0;
-  margin-bottom: 2rem;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.8));
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  padding: 20px;
+  text-align: center;
+  position: relative;
 }
 
 .logo {
@@ -33,26 +43,21 @@
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 600;
-  background: linear-gradient(45deg, #2196F3, #FF4081, #FFC107, #4CAF50);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  margin: 0.5rem 0;
-  text-align: center;
+  font-size: 24px;
+  color: #333;
+  margin: 20px 0;
+  line-height: 1.5;
 }
 
 .divider {
-  width: 80%;
-  height: 2px;
-  margin-top: 1.5rem;
-  background: linear-gradient(to right, 
-    rgba(33, 150, 243, 0.3), 
-    rgba(255, 64, 129, 0.3), 
-    rgba(255, 193, 7, 0.3), 
-    rgba(76, 175, 80, 0.3)
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(to right,
+    #00A76F 33.33%,
+    #FF6B6B 33.33% 66.66%,
+    #FFB547 66.66%
   );
+  margin-top: 20px;
 }
 
 .form {

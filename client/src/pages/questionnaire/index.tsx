@@ -5,6 +5,7 @@ import ImageUpload from './components/ImageUpload';
 import { questionnaireApi, QuestionnaireData } from '../../services/questionnaire';
 import { uploadApi } from '../../services/ImageUpload';
 import { useNavigate } from 'react-router-dom';
+import logo from '../../assets/logo.png';
 
 
 interface FormData {
@@ -248,11 +249,15 @@ export default function QuestionnairePage() {
         {/* Header */}
         <div className={styles.header}>
           <img 
-            src="@logo.png" 
+            src={logo}
             alt="Crush Logo" 
             className={styles.logo}
           />
-          <h1 className={styles.title}>Crush 计划报名表格</h1>
+          <h1 className={styles.title}>
+            Crush计划
+            <br />
+            报名表格
+          </h1>
           <div className={styles.divider}></div>
         </div>
 
