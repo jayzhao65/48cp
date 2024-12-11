@@ -16,6 +16,7 @@ const sftpConfig = {
 export const uploadImage = async (req: Request, res: Response) => {
   try {
     console.log('====== 图片上传请求开始 ======');
+    console.log('BASE_URL:', BASE_URL);
     
     if (res.headersSent) {
       console.log('响应已经发送，跳过处理');
@@ -48,13 +49,12 @@ export const uploadImage = async (req: Request, res: Response) => {
     fs.unlinkSync(localPath);
 
     const imageUrl = `${BASE_URL}/uploads/${file.filename}`;
-    console.log('生成的访问URL:', imageUrl);
-    console.log('====== 图片上传成功 ======');
-
-    return res.json({
-      success: true,
-      url: imageUrl
-    });
+    console.log('构建的图片URL:', imageUrl);
+    
+    const response = { success: true, url: imageUrl };
+    console.log('返回的响应:', response);
+    
+    return res.json(response);
 
   } catch (error) {
     console.error('====== 图片上传失败 ======');
