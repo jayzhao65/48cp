@@ -254,7 +254,6 @@ export default function QuestionnairePage() {
             className={styles.logo}
           />
           <h1 className={styles.title}>
-            <span>Crush计划</span>
             <span>报名表格</span>
           </h1>
           <div className={styles.divider}></div>
