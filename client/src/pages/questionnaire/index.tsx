@@ -102,9 +102,9 @@ const validateForm = (data: FormData): FormErrors => {
   return errors;
 };
 
-const navigate = useNavigate();
-
 export default function QuestionnairePage() {
+  const navigate = useNavigate();
+
   useEffect(() => {
   }, []);
 
