@@ -15,19 +15,44 @@
 }
 
 .header {
-  background: white;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  margin-bottom: 0.75rem;
-  width: 100%;
-  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.8));
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  width: 200px;
+  height: auto;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
 .title {
-  font-size: 1.25rem;
+  font-size: 2rem;
   font-weight: 600;
-  color: #111827;
-  margin: 0;
+  background: linear-gradient(45deg, #2196F3, #FF4081, #FFC107, #4CAF50);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 0.5rem 0;
+  text-align: center;
+}
+
+.divider {
+  width: 80%;
+  height: 2px;
+  margin-top: 1.5rem;
+  background: linear-gradient(to right, 
+    rgba(33, 150, 243, 0.3), 
+    rgba(255, 64, 129, 0.3), 
+    rgba(255, 193, 7, 0.3), 
+    rgba(76, 175, 80, 0.3)
+  );
 }
 
 .form {

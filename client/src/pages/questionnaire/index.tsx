@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
 import styles from './index.module.css';
 import ImageUpload from './components/ImageUpload';
-import SuccessModal from './components/SuccessModal';
 import { questionnaireApi, QuestionnaireData } from '../../services/questionnaire';
 import { uploadApi } from '../../services/ImageUpload';
+import { useNavigate } from 'react-router-dom';
 
 
 interface FormData {
@@ -102,6 +102,8 @@ const validateForm = (data: FormData): FormErrors => {
   return errors;
 };
 
+const navigate = useNavigate();
+
 export default function QuestionnairePage() {
   useEffect(() => {
   }, []);
@@ -125,7 +127,6 @@ export default function QuestionnairePage() {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -209,7 +210,7 @@ export default function QuestionnairePage() {
       if (!result.success) {
         throw new Error(result.error);
       }
-      setIsSuccessModalOpen(true);
+      navigate('/questionnaire/success');
     } catch (error) {
       console.error('Submit error:', error);
       setSubmitError('提交失败，请重试');
@@ -246,11 +247,13 @@ export default function QuestionnairePage() {
       <div className={styles.formContainer}>
         {/* Header */}
         <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>48CP</h1>
-            <h2 className={styles.title}>MATCHING 2024</h2>
-          </div>
-          <Users className="w-24 h-24 text-gray-800" />
+          <img 
+            src="@logo.png" 
+            alt="Crush Logo" 
+            className={styles.logo}
+          />
+          <h1 className={styles.title}>Crush 计划报名表格</h1>
+          <div className={styles.divider}></div>
         </div>
 
         {/* Form */}
@@ -456,14 +459,14 @@ export default function QuestionnairePage() {
               className={styles.textarea}
               value={formData.self_intro}
               onChange={handleChange}
-              placeholder="请分享三件你喜欢的和三件不喜欢的事..."
+              placeholder="越细致走心的表达，越容易匹配到心仪的对象，请尽量详细描述你的性格、爱好、生活习惯等，越详细越好。"
             />
             {errors.self_intro && <span className={styles.error}>{errors.self_intro}</span>}
           </div>
 
           {/* TODO: Add ImageUpload component */}
           <div className={styles.formGroup}>
-            <label className={styles.label}>社交媒体截图</label>
+            <label className={styles.label}>社交媒体截图（例如：小红书、朋友圈、豆瓣等）</label>
             <ImageUpload
               value={formData.images}
               onChange={handleImagesChange}  // 使用新的处理函数
@@ -486,11 +489,6 @@ export default function QuestionnairePage() {
               {submitError}
             </span>
           )}
-
-          <SuccessModal 
-            isOpen={isSuccessModalOpen}
-            onClose={() => setIsSuccessModalOpen(false)}
-          />
         </form>
       </div>
     </div>

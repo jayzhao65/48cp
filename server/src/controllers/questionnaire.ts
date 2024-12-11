@@ -303,7 +303,7 @@ export const handlePDFGeneration = async (req: Request, res: Response) => {
     const pdfBuffer = Buffer.from(pdfResult.buffer);
 
     // 5. 保存 PDF 文件
-    const fileName = `report_${id}_${Date.now()}.pdf`;
+    const fileName = `${questionnaire.name}_${questionnaire.wechat}.pdf`;
     const filePath = path.join(reportsDir, fileName);
     await fs.promises.writeFile(filePath, pdfBuffer);
 
