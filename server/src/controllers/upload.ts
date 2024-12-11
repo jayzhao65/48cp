@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import Client from 'ssh2-sftp-client';
 
-const BASE_URL = 'http://8.218.98.220:8080'; // 添加端口号
+const BASE_URL = 'http://8.218.98.220:8080';
 
 // SFTP 配置
 const sftpConfig = {

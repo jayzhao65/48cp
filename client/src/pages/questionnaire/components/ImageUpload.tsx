@@ -70,6 +70,7 @@ export default function ImageUpload({
         });
 
         const result = await uploadApi.uploadImage(compressedFile);
+        console.log('上传图片响应:', result);
         if (result && result.url) {
           const preview = URL.createObjectURL(compressedFile);
           const newImage = {
