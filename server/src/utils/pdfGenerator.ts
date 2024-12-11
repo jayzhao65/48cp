@@ -130,17 +130,8 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         displayHeaderFooter: true,
         headerTemplate: '<div></div>',
         footerTemplate: `
-          <style>
-            @font-face {
-              font-family: 'Huiwen_mingchao';
-              src: url('${templateData.fontBase64}') format('opentype');
-              font-weight: normal;
-              font-style: normal;
-            }
-          </style>
-          <div style="font-family: 'Huiwen_mingchao', sans-serif; font-size: 10px; padding: 0 15mm; width: 100%; text-align: center; color: #666;">
-            <span>&copy; Crush &amp; Beyond &ndash; 让爱更有见地</span>
-            <span style="margin-left: 20px;">第 <span class="pageNumber"></span> 页</span>
+          <div style="font-size: 10px; padding: 0 15mm; width: 100%; text-align: center; color: #666;">
+            <span>© Crush & Beyond </span>
           </div>
         `
       });
