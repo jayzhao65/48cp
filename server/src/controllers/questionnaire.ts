@@ -308,7 +308,10 @@ export const handlePDFGeneration = async (req: Request, res: Response) => {
     await fs.promises.writeFile(filePath, pdfBuffer);
 
     // 6. 构建完整的 PDF URL
-    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const baseUrl = process.env.BASE_URL || 
+      (process.env.NODE_ENV === 'production' 
+        ? `${req.protocol}://${req.get('host')}:8080`
+        : `${req.protocol}://${req.get('host')}`);
     const pdfUrl = `${baseUrl}/reports/${fileName}`;
 
     // 7. 更新数据库中的信息
