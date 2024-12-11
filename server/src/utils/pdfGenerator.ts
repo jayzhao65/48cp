@@ -116,31 +116,6 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
       // 给字体加载一些时间
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // 在生成 PDF 之前添加调试代码（在 page.pdf 之前）
-      const styles = await page.evaluate(() => {
-        const bodyStyles = window.getComputedStyle(document.body);
-        const sectionContent = document.querySelector('.section-content');
-        const sectionStyles = sectionContent ? window.getComputedStyle(sectionContent) : null;
-
-        return {
-          body: {
-            margin: bodyStyles.margin,
-            padding: bodyStyles.padding,
-            fontSize: bodyStyles.fontSize,
-            background: bodyStyles.background
-          },
-          sectionContent: sectionStyles ? {
-            width: sectionStyles.width,
-            margin: sectionStyles.margin,
-            padding: sectionStyles.padding,
-            fontSize: sectionStyles.fontSize,
-            textAlign: sectionStyles.textAlign,
-            lineHeight: sectionStyles.lineHeight
-          } : null,
-          printMediaQuery: window.matchMedia('print').matches
-        };
-      });
-
       // 生成 PDF
       await page.emulateMediaType('print');
       const pdf = await page.pdf({
@@ -155,8 +130,16 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
         displayHeaderFooter: true,
         headerTemplate: '<div></div>',
         footerTemplate: `
-          <div style="font-size: 10px; padding: 0 15mm; width: 100%; text-align: center; color: #666;">
-            <span>© Crush & Beyond - 让爱更有见地</span>
+          <style>
+            @font-face {
+              font-family: 'Huiwen_mingchao';
+              src: url('${templateData.fontBase64}') format('opentype');
+              font-weight: normal;
+              font-style: normal;
+            }
+          </style>
+          <div style="font-family: 'Huiwen_mingchao', sans-serif; font-size: 10px; padding: 0 15mm; width: 100%; text-align: center; color: #666;">
+            <span>&copy; Crush &amp; Beyond &ndash; 让爱更有见地</span>
             <span style="margin-left: 20px;">第 <span class="pageNumber"></span> 页</span>
           </div>
         `
