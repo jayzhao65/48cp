@@ -140,7 +140,7 @@ router.post('/upload', async (req, res) => {
 
     // 构建响应 URL
     const filename = req.file.filename;
-    const imageUrl = `http://beyondcrush.love:8080/uploads/${filename}`;
+    const imageUrl = `https://beyondcrush.love/uploads/${filename}`;
 
     // 返回响应
     return res.json({
