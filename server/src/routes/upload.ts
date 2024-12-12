@@ -140,7 +140,7 @@ router.post('/upload', async (req, res) => {
 
     // 构建响应 URL
     const filename = req.file.filename;
-    const imageUrl = `http://8.218.98.220:8080/uploads/${filename}`;
+    const imageUrl = `http://[240b:4001:279:96ff:9a1a:fad6:6a4d:13e0]:8080/uploads/${filename}`;
 
     // 返回响应
     return res.json({
