@@ -136,7 +136,7 @@ export const generateTask = async (req: Request, res: Response) => {
           'Authorization': `Bearer ${process.env.COZE_API_KEY}`,
           'Content-Type': 'application/json'
         },
-        timeout: 30000
+        timeout: 150000
       }
     );
 

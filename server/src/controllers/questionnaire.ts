@@ -415,7 +415,7 @@ const callCozeAPI = async (userInfo: UserInfo): Promise<string> => {
           'Authorization': `Bearer ${process.env.COZE_API_KEY}`,
           'Content-Type': 'application/json'
         },
-        timeout: 30000
+        timeout: 150000
       }
     );
 

@@ -79,7 +79,7 @@ export const generatePDFFromReport = async (reportContent: string, questionnaire
       console.log('设置页面内容');
       await page.setContent(html, {
         waitUntil: ['load', 'networkidle0'],
-        timeout: 90000
+        timeout: 900000
       });
       
       // 注入字体
