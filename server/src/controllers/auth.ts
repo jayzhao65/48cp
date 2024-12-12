@@ -59,3 +59,43 @@ export const login = async (req: Request, res: Response) => {
   });
 }
 };
+
+// 添加新的检查认证函数
+export const checkAdminAuth = async (req: Request, res: Response) => {
+  try {
+    // 从请求头获取 token
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: '未提供认证令牌'
+      });
+    }
+
+    // 验证 token
+    jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+      if (err) {
+        return res.status(401).json({
+          success: false,
+          error: '认证令牌无效'
+        });
+      }
+
+      // token 验证成功
+      res.json({
+        success: true,
+        data: {
+          username: decoded.username
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error('认证检查失败:', error);
+    res.status(500).json({
+      success: false,
+      error: '服务器错误'
+    });
+  }
+};

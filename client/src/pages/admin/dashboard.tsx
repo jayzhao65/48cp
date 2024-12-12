@@ -3,8 +3,9 @@ import { Card, Row, Col, Statistic, List, Typography } from 'antd';
 import { UserOutlined, HeartOutlined, ManOutlined, WomanOutlined } from '@ant-design/icons';
 import { dashboardApi, DashboardStats } from '../../services/dashboard';
 import styles from './dashboard.module.css';
+import { withAdminAuth } from '../../components/withAdminAuth';
 
-export default function Dashboard() {
+function Dashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalCouples: 0,
@@ -131,3 +132,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+export default withAdminAuth(Dashboard);

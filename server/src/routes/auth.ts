@@ -7,13 +7,18 @@
 // - 被 app.ts 引用并注册到 /api 路径下
 
 import express, { Request, Response } from 'express';
-import { login } from '../controllers/auth';
+import { login, checkAdminAuth } from '../controllers/auth';
 
 const router = express.Router();
 
 // POST /api/login - 处理管理员登录请求
 router.post('/login', async (req: Request, res: Response) => {
   await login(req, res);
+});
+
+// 添加新的认证检查路由
+router.get('/check-admin', async (req: Request, res: Response) => {
+  await checkAdminAuth(req, res);
 });
 
 export default router;

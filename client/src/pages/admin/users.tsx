@@ -6,6 +6,7 @@ import commonStyles from './common.module.css';
 import { MatchingSection } from './components/MatchingSection';
 import { UserDetailContent } from './components/UserDetailContent';
 import { PersonalityReport } from './components/PersonalityReport';
+import { withAdminAuth } from '../../components/withAdminAuth';
 
 
 // 定义用户数据的类型接口，描述了用户的所有属性
@@ -44,7 +45,7 @@ export interface UserData {
 
 
 // 用户管理页面的主组件
-export default function Users() {
+function Users() {
   // 使用useState定义组件的状态
   const [users, setUsers] = useState<UserData[]>([]); // 存储用户列表
   const [loading, setLoading] = useState(true);       // 加载状态
@@ -498,3 +499,5 @@ export default function Users() {
     </div>
   );
 }
+
+export default withAdminAuth(Users);

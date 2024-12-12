@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { coupleApi } from '../../services/couple';
 import styles from './couples.module.css';
 import { UserData } from './users';
+import { withAdminAuth } from '../../components/withAdminAuth';
 
 interface CoupleData {
   _id: string;
@@ -18,7 +19,7 @@ interface CoupleData {
   } | null;
 }
 
-export default function Couples() {
+export default withAdminAuth(function Couples() {
   const [couples, setCouples] = useState<CoupleData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCouple, setSelectedCouple] = useState<CoupleData | null>(null);
@@ -240,7 +241,7 @@ export default function Couples() {
       </Drawer>
     </div>
   );
-}
+});
 
 function UserDetail({ user }: { user: UserData }) {
   return (

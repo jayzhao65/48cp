@@ -23,5 +23,22 @@ export const authApi = {
       // 如果发生错误，向上抛出异常
       throw error;
     }
+  },
+
+  // 检查管理员权限
+  checkAdminAuth: async () => {
+    try {
+      // 从 localStorage 获取 token
+      const token = localStorage.getItem('adminToken');
+      
+      const response = await apiClient.get('/check-admin', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
