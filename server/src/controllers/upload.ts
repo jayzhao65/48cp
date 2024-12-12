@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import Client from 'ssh2-sftp-client';
 
-const BASE_URL = 'http://[240b:4001:279:96ff:9a1a:fad6:6a4d:13e0]:8080';
+const BASE_URL = 'http://beyondcrush.love:8080';
 
 // SFTP 配置
 const sftpConfig = {
