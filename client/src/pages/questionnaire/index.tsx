@@ -40,7 +40,7 @@ const validateField = (name: string, value: any): string => {
       if (!/^1[3-9]\d{9}$/.test(value)) return '请输入正确的手机号格式';
       break;
     case 'wechat':
-      if (!value) return '请输入微信号';
+      if (!value) return '请与购买时填写的微信号一致';
       if (value.length < 6 || value.length > 20) return '微信号长度必须在6-20个字符之间';
       break;
     case 'birth_year':
@@ -296,7 +296,7 @@ export default function QuestionnairePage() {
               className={styles.input}
               value={formData.wechat}
               onChange={handleChange}
-              placeholder="请输入微信号"
+              placeholder="请与购买时填写的微信号一致"
             />
             {errors.wechat && <span className={styles.error}>{errors.wechat}</span>}
           </div>
