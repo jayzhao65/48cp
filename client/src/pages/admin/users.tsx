@@ -45,7 +45,7 @@ export interface UserData {
 
 
 // 用户管理页面的主组件
-function Users() {
+const UsersPage: React.FC = () => {
   // 使用useState定义组件的状态
   const [users, setUsers] = useState<UserData[]>([]); // 存储用户列表
   const [loading, setLoading] = useState(true);       // 加载状态
@@ -498,6 +498,12 @@ function Users() {
       </Drawer>
     </div>
   );
-}
+};
 
-export default withAdminAuth(Users);
+// 使用 App 组件包装
+const UsersWithAuth = withAdminAuth(UsersPage);
+
+// 添加 getLayout 属性
+(UsersWithAuth as any).getLayout = (page: React.ReactElement) => page;
+
+export default UsersWithAuth;

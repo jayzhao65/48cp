@@ -3,7 +3,8 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { 
   UserOutlined, 
   HeartOutlined, 
-  DashboardOutlined 
+  DashboardOutlined,
+  FileTextOutlined
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = Layout;
@@ -30,6 +31,11 @@ function AdminLayout() {
       key: 'couples',
       icon: <HeartOutlined />,
       label: 'CP管理',
+    },
+    {
+      key: 'batch-report',
+      icon: <FileTextOutlined />,
+      label: '批量生成报告',
     },
   ];
 

@@ -23,6 +23,10 @@ import * as path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { initializeDirectories } from './utils/init';
+import batchReportRouter from './routes/batchReport';
+import './models/questionnaire';  // 现有的导入
+import './models/couple';         // 现有的导入
+import './models/processRecord';  // 添加这一行
 
 
 // 创建一个 Express 应用实例
@@ -65,6 +69,7 @@ app.use('/api', [
     coupleRoutes,
     dashboardRoutes
   ]);
+app.use('/api/batch-report', batchReportRouter);
 // 设置服务器端口
 // process.env.PORT 读取环境变量中的 PORT 值，如果没有设置则使用 3001
 const PORT = process.env.PORT || 3001;

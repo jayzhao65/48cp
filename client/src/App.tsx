@@ -6,6 +6,7 @@ import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/dashboard';
 import AdminUsers from './pages/admin/users';
 import AdminCouples from './pages/admin/couples';
+import BatchReport from './pages/admin/BatchReport';
 import SuccessPage from './pages/questionnaire/success';
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="couples" element={<AdminCouples />} />
+            <Route path="batch-report" element={<BatchReport />} />
           </Route>
           
           <Route path="/" element={<Navigate to="/questionnaire" replace />} />

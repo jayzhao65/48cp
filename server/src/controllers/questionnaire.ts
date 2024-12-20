@@ -193,18 +193,24 @@ export const matchUsers = async (req: Request, res: Response) => {
       }
 
       if (user1.matched_with) {
-        await Questionnaire.updateOne(
-          { _id: user1.matched_with },
-          {
-            matched_with: null,
-            matched_at: null,
-            status: user1.personality_report?.content?.raw_response ? 
-              QuestionnaireStatus.REPORTED : 
-              QuestionnaireStatus.SUBMITTED
-          }
-        );
+        // 获取匹配用户的完整信息
+        const matchedUser = await Questionnaire.findById(user1.matched_with);
+        if (matchedUser) {
+          // 使用匹配用户自己的报告状态
+          await Questionnaire.updateOne(
+            { _id: matchedUser._id },
+            {
+              matched_with: null,
+              matched_at: null,
+              status: matchedUser.personality_report?.content?.raw_response ? 
+                QuestionnaireStatus.REPORTED : 
+                QuestionnaireStatus.SUBMITTED
+            }
+          );
+        }
       }
 
+      // 使用当前用户自己的报告状态
       await Questionnaire.updateOne(
         { _id: user1._id },
         {
@@ -415,7 +421,7 @@ const callCozeAPI = async (userInfo: UserInfo): Promise<string> => {
           'Authorization': `Bearer ${process.env.COZE_API_KEY}`,
           'Content-Type': 'application/json'
         },
-        timeout: 150000
+        timeout: 200000
       }
     );
 
