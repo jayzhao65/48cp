@@ -44,7 +44,6 @@ const validateField = (name: string, value: any): string => {
     case 'birth_month':
       if (!value) return '请选择出生月份';
       if (new Date(value) > new Date()) return '出生月份不能是将来时间';
-      if (new Date(value) > new Date('2006-12-31')) return '此活动仅对18岁以上开放';
       break;
     case 'zodiac':
       if (!value) return '请选择星座';
