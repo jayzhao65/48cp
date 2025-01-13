@@ -281,6 +281,19 @@ export default function QuestionnairePage() {
           </div>
 
           <div className={styles.formGroup}>
+            <label className={styles.label}>邮箱地址</label>
+            <input
+              type="email"
+              name="email"
+              className={styles.input}
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="请输入邮箱地址"
+            />
+            {errors.email && <span className={styles.error}>{errors.email}</span>}
+          </div>
+
+          <div className={styles.formGroup}>
             <label className={styles.label}>出生年月</label>
             <div className={styles.dateSelectGroup}>
               <select
