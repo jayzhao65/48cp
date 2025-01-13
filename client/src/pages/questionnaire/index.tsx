@@ -11,6 +11,7 @@ import logo from '../../assets/logo.png';
 interface FormData {
   name: string;
   phone: string;
+  email: string;
   birth_year: string;
   birth_month: string;
   zodiac: string;
@@ -78,6 +79,10 @@ const validateField = (name: string, value: any): string => {
       );
       if (invalidFormat) return '只支持 JPG/PNG 格式的图片';
       break;
+    case 'email':
+      if (!value) return '请输入邮箱';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return '请输入正确的邮箱格式';
+      break;
   }
   return '';
 };
@@ -100,6 +105,7 @@ export default function QuestionnairePage() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     phone: '',
+    email: '',
     birth_year: '',
     birth_month: '',
     zodiac: '',
@@ -178,7 +184,7 @@ export default function QuestionnairePage() {
       const submitData = {
         name: formData.name,
         phone: formData.phone,
-        wechat: formData.phone,
+        wechat: formData.email,
         birth_year: formData.birth_year,
         birth_month: formData.birth_month,
         zodiac: formData.zodiac,
