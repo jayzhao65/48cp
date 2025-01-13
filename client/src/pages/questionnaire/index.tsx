@@ -422,7 +422,7 @@ export default function QuestionnairePage() {
               className={styles.textarea}
               value={formData.self_intro}
               onChange={handleChange}
-              placeholder="越细致走心的表达，越容易匹配到心仪的对象，请尽量详细描述你的性格、爱好、生活习惯等，越详细越好。"
+              placeholder="细致完整的表达将会显著提升你的报告质量，请尽量详细描述你的性格、爱好、生活习惯等，越详细越好。"
             />
             {errors.self_intro && <span className={styles.error}>{errors.self_intro}</span>}
           </div>

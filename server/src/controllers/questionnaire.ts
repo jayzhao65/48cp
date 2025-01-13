@@ -21,8 +21,6 @@ import sharp from 'sharp';
 // async 表示这是一个异步函数，可以等待其他异步操作完成
 export const submitQuestionnaire = async (req: Request, res: Response) => {
   try {
-    // 从请求体(req.body)中获取问卷数据
-    // 当用户提交表单时，数据会存储在 req.body 中
     const questionnaireData = req.body;
     
     // 验证日期格式
@@ -33,45 +31,24 @@ export const submitQuestionnaire = async (req: Request, res: Response) => {
       });
     }
 
-    // 验证年龄限制
-    const [year, month] = questionnaireData.birth_date.split('-');
-    const birthDate = new Date(parseInt(year), parseInt(month) - 1);
-    if (birthDate > new Date('2006-12-31')) {
-      return res.status(400).json({
-        success: false,
-        error: '此活动仅对18岁以上开放'
-      });
-    }
-
     const questionnaire = new Questionnaire(questionnaireData);
-
-    // 将问卷数据保存到数据库中
-    // await 表示等待保存操作完成
     await questionnaire.save();
 
-    // 发送成功响应
-    // status(201) 表示创建成功
-    // json() 发送 JSON 格式的响应数据
     res.status(201).json({
-      success: true,          // 表示操作成功
-      message: '问卷提交成功', // 成功提示信息
-      data: questionnaire     // 返回保存的问卷数据
+      success: true,
+      message: '问卷提交成功',
+      data: questionnaire
     });
 
   } catch (error) {
-    // 如果过程中发生错误，进入错误处理
-    
-    // 在控制台打印错误信息，方便调试
     console.error('提交问卷失败:', error);
-
-    // 发送错误响应
-    // status(500) 表示服务器内部错误
     res.status(500).json({
-      success: false,           // 表示操作失败
-      error: '提交失败，请重试'  // 错误提示信息
+      success: false,
+      error: '提交失败，请重试'
     });
   }
 };
+
 export const getQuestionnaires = async (req: Request, res: Response) => {
   try {
     const questionnaires = await Questionnaire.find()
