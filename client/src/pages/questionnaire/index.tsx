@@ -40,7 +40,6 @@ const validateField = (name: string, value: any): string => {
     case 'birth_year':
       if (!value) return '请选择出生年份';
       if (new Date(value) > new Date()) return '出生年份不能是将来时间';
-      if (new Date(value) > new Date('2006-12-31')) return '此活动仅对18岁以上开放';
       break;
     case 'birth_month':
       if (!value) return '请选择出生月份';
@@ -122,8 +121,8 @@ export default function QuestionnairePage() {
 
   // 生成年份选项（18-60岁，从2006年开始）
   const yearOptions = Array.from(
-    { length: 27 }, 
-    (_, i) => 2006 - i
+    { length: 60 }, 
+    (_, i) => new Date().getFullYear() - i
   );  // 这样会生成 [2006, 2005, 2004, ..., 1964]
 
   // 月份选项
