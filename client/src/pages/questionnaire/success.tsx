@@ -13,10 +13,7 @@ export default function SuccessPage() {
         <CheckCircle className={styles.icon} size={48} />
         <h2 className={styles.title}>提交成功！</h2>
         <p className={styles.message}>
-          感谢你的参与！我们会在48小时内审核你的信息。
-        </p>
-        <p className={styles.submessage}>
-          请保持手机畅通，我们会通过微信或电话与你联系。
+          感谢你的参与！我们会在48小时内邮件发送给你报告。
         </p>
         <button onClick={handleClose} className={styles.confirmButton}>
           我知道了

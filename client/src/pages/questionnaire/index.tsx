@@ -11,12 +11,10 @@ import logo from '../../assets/logo.png';
 interface FormData {
   name: string;
   phone: string;
-  wechat: string;
   birth_year: string;
   birth_month: string;
   zodiac: string;
   mbti: string;
-  location: string;
   gender: 'male' | 'female' | '';
   orientation: 'straight' | 'gay' | 'bisexual' | '';
   occupation: string;
@@ -39,10 +37,6 @@ const validateField = (name: string, value: any): string => {
       if (!value) return '请输入手机号';
       if (!/^1[3-9]\d{9}$/.test(value)) return '请输入正确的手机号格式';
       break;
-    case 'wechat':
-      if (!value) return '请与购买时填写的微信号一致';
-      if (value.length < 6 || value.length > 20) return '微信号长度必须在6-20个字符之间';
-      break;
     case 'birth_year':
       if (!value) return '请选择出生年份';
       if (new Date(value) > new Date()) return '出生年份不能是将来时间';
@@ -63,10 +57,6 @@ const validateField = (name: string, value: any): string => {
     case 'mbti':
       if (!value) return '请输入MBTI类型';
       if (!/^[IiEe][NnSs][FfTt][JjPp]$/.test(value)) return '请输入正确的MBTI格式';
-      break;
-    case 'location':
-      if (!value) return '请输入所在地';
-      if (value.length < 2 || value.length > 50) return '所在地长度必须在2-50个字符之间';
       break;
     case 'gender':
       if (!value) return '请选择性别';
@@ -112,12 +102,10 @@ export default function QuestionnairePage() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     phone: '',
-    wechat: '',
     birth_year: '',
     birth_month: '',
     zodiac: '',
     mbti: '',
-    location: '',
     gender: '',
     orientation: '',
     occupation: '',
@@ -192,12 +180,12 @@ export default function QuestionnairePage() {
       const submitData = {
         name: formData.name,
         phone: formData.phone,
-        wechat: formData.wechat,
+        wechat: formData.phone,
         birth_year: formData.birth_year,
         birth_month: formData.birth_month,
         zodiac: formData.zodiac,
         mbti: formData.mbti.toUpperCase(),
-        location: formData.location,
+        location: '未填写',
         gender: formData.gender as 'male' | 'female',
         orientation: formData.orientation as 'straight' | 'gay' | 'bisexual',
         occupation: formData.occupation,
@@ -254,7 +242,7 @@ export default function QuestionnairePage() {
             className={styles.logo}
           />
           <h1 className={styles.title}>
-            <span>报名表格</span>
+            <span>信息填写表格</span>
           </h1>
           <div className={styles.divider}></div>
         </div>
@@ -286,19 +274,6 @@ export default function QuestionnairePage() {
               placeholder="请输入手机号"
             />
             {errors.phone && <span className={styles.error}>{errors.phone}</span>}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>微信号</label>
-            <input
-              type="text"
-              name="wechat"
-              className={styles.input}
-              value={formData.wechat}
-              onChange={handleChange}
-              placeholder="请与购买时填写的微信号一致"
-            />
-            {errors.wechat && <span className={styles.error}>{errors.wechat}</span>}
           </div>
 
           <div className={styles.formGroup}>
@@ -366,19 +341,6 @@ export default function QuestionnairePage() {
               placeholder="例如：INFP"
             />
             {errors.mbti && <span className={styles.error}>{errors.mbti}</span>}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>所在地</label>
-            <input
-              type="text"
-              name="location"
-              className={styles.input}
-              value={formData.location}
-              onChange={handleChange}
-              placeholder="请输入所在地"
-            />
-            {errors.location && <span className={styles.error}>{errors.location}</span>}
           </div>
 
           {/* 性别选项 */}
